@@ -9,3 +9,8 @@ Debug
 .cproject
 .project
 /.metadata/
+circBuft.c
+circBuft.h
+buttons4.c
+buttons4.h
+

@@ -17,14 +17,17 @@
 #include "driverlib/interrupt.h"
 #include "driverlib/debug.h"
 #include "utils/ustdlib.h"
-#include "circBufT.h"
 #include "OrbitOLED/OrbitOLEDInterface.h"
+#include "buttons4.h"
+#include "circBufT.h"
+#include "Display.h"
 
 //*****************************************************************************
 // Constants
 //*****************************************************************************
-#define BUF_SIZE 25
-#define SAMPLE_RATE_HZ 100
+#define BUF_SIZE 15
+#define SAMPLE_RATE_HZ 35
+
 
 //*****************************************************************************
 // Global variables
@@ -129,34 +132,10 @@ initADC (void)
     ADCIntEnable(ADC0_BASE, 3);
 }
 
-void
-initDisplay (void)
-{
-    // intialise the Orbit OLED display
-    OLEDInitialise ();
-}
 
-//*****************************************************************************
-//
-// Function to display the mean ADC value (10-bit value, note) and sample count.
-//
-//*****************************************************************************
-void
-displayMeanVal(uint16_t meanVal, uint32_t count)
-{
-    char string[17];  // 16 characters across the display
 
-    OLEDStringDraw ("ADC demo 1", 0, 0);
 
-    // Form a new string for the line.  The maximum width specified for the
-    //  number field ensures it is displayed right justified.
-    usnprintf (string, sizeof(string), "Mean ADC = %4d", meanVal);
-    // Update line on display.
-    OLEDStringDraw (string, 0, 1);
 
-    usnprintf (string, sizeof(string), "Sample # %5d", count);
-    OLEDStringDraw (string, 0, 3);
-}
 
 
 int
@@ -164,26 +143,61 @@ main(void)
 {
     uint16_t i;
     int32_t sum;
+    int8_t displayNumber = 0;
+    int32_t bufferRoundedMean;
+
 
     initClock ();
     initADC ();
     initDisplay ();
     initCircBuf (&g_inBuffer, BUF_SIZE);
 
-    //
+
+
     // Enable interrupts to the processor.
     IntMasterEnable();
 
     while (1)
     {
-        //
+
+        //updates the display number
+        if (checkButton(UP) == PUSHED)
+        {
+            displayNumber++;
+            displayNumber %= 3;
+        }
+
+
         // Background task: calculate the (approximate) mean of the values in the
         // circular buffer and display it, together with the sample number.
         sum = 0;
         for (i = 0; i < BUF_SIZE; i++)
+        {
             sum = sum + readCircBuf (&g_inBuffer);
+        }
+
+
         // Calculate and display the rounded mean of the buffer contents
-        displayMeanVal ((2 * sum + BUF_SIZE) / 2 / BUF_SIZE, g_ulSampCnt);
+        bufferRoundedMean = (2 * sum + BUF_SIZE) / 2 / BUF_SIZE;
+
+
+        switch (displayNumber)
+        {
+            case(0):
+                //Displays the altitude percentage
+
+
+
+                break;
+            case(1):
+                //Displays the rounded mean value of the buffer
+                displayMeanVal (bufferRoundedMean, g_ulSampCnt);
+                break;
+            case(2):
+                // Clears the display
+                clearDisplay();
+                break;
+        }
 
         SysCtlDelay (SysCtlClockGet() / 6);  // Update display at ~ 2 Hz
     }
