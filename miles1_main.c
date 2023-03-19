@@ -143,8 +143,11 @@ main(void)
 {
     uint16_t i;
     int32_t sum;
+
     int8_t displayNumber = 0;
     int32_t bufferRoundedMean;
+    int32_t initialSampleValue = 0;
+    bool takeLandedSample = true;
 
 
     initClock ();
@@ -160,14 +163,6 @@ main(void)
     while (1)
     {
 
-        //updates the display number
-        if (checkButton(UP) == PUSHED)
-        {
-            displayNumber++;
-            displayNumber %= 3;
-        }
-
-
         // Background task: calculate the (approximate) mean of the values in the
         // circular buffer and display it, together with the sample number.
         sum = 0;
@@ -176,6 +171,28 @@ main(void)
             sum = sum + readCircBuf (&g_inBuffer);
         }
 
+
+
+        //takes the first sample mean and uses that as the 0%/ landed value
+        if(takeLandedSample)
+        {
+            initialSampleValue = sum / BUF_SIZE;
+            takeLandedSample = false;
+        }
+
+        //updates the display number
+        if (checkButton(UP) == PUSHED)
+        {
+            displayNumber++;
+            displayNumber %= 3;
+        }
+
+        // sets the landed sampling boolean to true
+        // to recalculate the 0% value
+        if(checkButton(LEFT) == PUSHED)
+        {
+            takeLandedSample = true;
+        }
 
         // Calculate and display the rounded mean of the buffer contents
         bufferRoundedMean = (2 * sum + BUF_SIZE) / 2 / BUF_SIZE;
