@@ -19,6 +19,8 @@ void clearDisplay(void); // clears every line of the contents of the OLED displa
 
 void displayMeanVal(uint16_t meanVal, uint32_t count); // displays the rounded mean value of the buffer
 
+void displayAltitude(int32_t altitudePercentage); // displays the altitude percentage on the OLED
+
 
 
 

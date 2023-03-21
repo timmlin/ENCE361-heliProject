@@ -18,15 +18,18 @@
 #include "driverlib/debug.h"
 #include "utils/ustdlib.h"
 #include "OrbitOLED/OrbitOLEDInterface.h"
+#include "stdlib.h"
 #include "buttons4.h"
 #include "circBufT.h"
 #include "Display.h"
+#include "inc/hw_ints.h"  // Interrupts
 
 //*****************************************************************************
 // Constants
 //*****************************************************************************
-#define BUF_SIZE 15
-#define SAMPLE_RATE_HZ 35
+#define BUF_SIZE 25
+#define SAMPLE_RATE_HZ 100
+#define ADC_RANGE 1241
 
 
 //*****************************************************************************
@@ -98,6 +101,9 @@ initClock (void)
 void
 initADC (void)
 {
+
+    initCircBuf (&g_inBuffer, BUF_SIZE);
+
     //
     // The ADC0 peripheral must be enabled for configuration and use.
     SysCtlPeripheralEnable(SYSCTL_PERIPH_ADC0);
@@ -133,35 +139,44 @@ initADC (void)
 }
 
 
+/*void
+IntPrioritySet(uint32_t INT_GPIOE_TM4C123, uint8_t 4) // setting priority for LEFT button push interrupt (for altitude reset) initially at interrupt priority 4
+{
 
+}*/
 
 
 
 
 int
 main(void)
+
 {
     uint16_t i;
     int32_t sum;
 
+    bool TakeLandedSample = true;
     int8_t displayNumber = 0;
     int32_t bufferRoundedMean;
-    int32_t initialSampleValue = 0;
-    bool takeLandedSample = true;
+    int32_t landedADCValue = 0;
+    int32_t curADCValue = 0;
+    int32_t altitudePercentage = 0;
+
 
 
     initClock ();
     initADC ();
     initDisplay ();
-    initCircBuf (&g_inBuffer, BUF_SIZE);
+    initButtons ();
 
 
 
     // Enable interrupts to the processor.
     IntMasterEnable();
 
-    while (1)
+    while (true)
     {
+
 
         // Background task: calculate the (approximate) mean of the values in the
         // circular buffer and display it, together with the sample number.
@@ -171,14 +186,19 @@ main(void)
             sum = sum + readCircBuf (&g_inBuffer);
         }
 
+        curADCValue = sum / BUF_SIZE;
 
 
         //takes the first sample mean and uses that as the 0%/ landed value
-        if(takeLandedSample)
+        if(TakeLandedSample)
         {
-            initialSampleValue = sum / BUF_SIZE;
-            takeLandedSample = false;
+            landedADCValue = curADCValue;
+            TakeLandedSample = false;
         }
+
+        altitudePercentage = ((landedADCValue - curADCValue)  * 100 / ADC_RANGE);
+
+        updateButtons ();
 
         //updates the display number
         if (checkButton(UP) == PUSHED)
@@ -191,7 +211,7 @@ main(void)
         // to recalculate the 0% value
         if(checkButton(LEFT) == PUSHED)
         {
-            takeLandedSample = true;
+            TakeLandedSample = true;
         }
 
         // Calculate and display the rounded mean of the buffer contents
@@ -202,17 +222,20 @@ main(void)
         {
             case(0):
                 //Displays the altitude percentage
-
-
-
+                displayAltitude(altitudePercentage);
                 break;
+
             case(1):
                 //Displays the rounded mean value of the buffer
                 displayMeanVal (bufferRoundedMean, g_ulSampCnt);
                 break;
+
             case(2):
                 // Clears the display
                 clearDisplay();
+                break;
+
+            default:
                 break;
         }
 

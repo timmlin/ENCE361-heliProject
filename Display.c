@@ -20,7 +20,11 @@ void initDisplay (void)
 }
 
 
-
+//*****************************************************************************
+//
+// Function to clear every line of the display
+//
+//*****************************************************************************
 void clearDisplay()
 {
     int8_t curLine;
@@ -54,5 +58,27 @@ displayMeanVal(uint16_t meanVal, uint32_t count)
 
     usnprintf (string, sizeof(string), "Sample # %5d", count);
     OLEDStringDraw (string, 0, 3);
+}
+
+
+//*****************************************************************************
+//
+// Function to display the mean ADC value (10-bit value, note) and sample count.
+//
+//*****************************************************************************
+void
+displayAltitude(int32_t altitudePercentage)
+{
+    char string[17];  // 16 characters across the display
+
+    OLEDStringDraw ("Altitude Display ", 0, 0);
+
+
+    // Form a new string for the line.  The maximum width specified for the
+    //  number field ensures it is displayed right justified.
+    usnprintf (string, sizeof(string), "Alt = %4d %%", altitudePercentage);
+    // Update line on display.
+    OLEDStringDraw (string, 0, 2);
+
 }
 
