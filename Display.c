@@ -29,7 +29,7 @@ void clearDisplay()
 {
     int8_t curLine;
 
-    for(curLine = 0; curLine < SCREEN_LINE_NUM; curLine++)
+    for(curLine = 0; curLine <= SCREEN_LINE_NUM; curLine++)
     {
         OLEDStringDraw("                ", 0, curLine);
         curLine++;
@@ -46,15 +46,14 @@ void clearDisplay()
 void
 displayMeanVal(uint16_t meanVal, uint32_t count)
 {
-    char string[17];  // 16 characters across the display
 
-    OLEDStringDraw ("ADC demo 1", 0, 0);
+    char string[17];  // 16 characters across the display
 
     // Form a new string for the line.  The maximum width specified for the
     //  number field ensures it is displayed right justified.
     usnprintf (string, sizeof(string), "Mean ADC = %4d", meanVal);
     // Update line on display.
-    OLEDStringDraw (string, 0, 1);
+    OLEDStringDraw (string, 0, 0);
 
     usnprintf (string, sizeof(string), "Sample # %5d", count);
     OLEDStringDraw (string, 0, 3);
@@ -69,6 +68,8 @@ displayMeanVal(uint16_t meanVal, uint32_t count)
 void
 displayAltitude(int32_t altitudePercentage)
 {
+     //clears display before writing to it
+
     char string[17];  // 16 characters across the display
 
     OLEDStringDraw ("Altitude Display ", 0, 0);

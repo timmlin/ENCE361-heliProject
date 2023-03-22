@@ -27,6 +27,9 @@
 //*****************************************************************************
 // Constants
 //*****************************************************************************
+#define SYSTICK_RATE_HZ 100
+#define SLOWTICK_RATE_HZ 4
+
 #define BUF_SIZE 25
 #define SAMPLE_RATE_HZ 100
 #define ADC_RANGE 1241
@@ -38,19 +41,30 @@
 static circBuf_t g_inBuffer;        // Buffer of size BUF_SIZE integers (sample values)
 static uint32_t g_ulSampCnt;    // Counter for the interrupts
 
+volatile uint8_t slowTick = false;
+
+
 //*****************************************************************************
 //
 // The interrupt handler for the for SysTick interrupt.
 //
 //*****************************************************************************
 void
-SysTickIntHandler(void)
+SysTickIntHandler (void)
 {
-    //
-    // Initiate a conversion
-    //
+    static uint8_t tickCount = 0;
+    const uint8_t ticksPerSlow = SYSTICK_RATE_HZ / SLOWTICK_RATE_HZ;
+
+    updateButtons ();       // Poll the buttons
+    if (++tickCount >= ticksPerSlow)
+    {                       // Signal a slow tick
+        tickCount = 0;
+        slowTick = true;
+    }
+
     ADCProcessorTrigger(ADC0_BASE, 3);
     g_ulSampCnt++;
+
 }
 
 //*****************************************************************************
@@ -76,8 +90,25 @@ ADCIntHandler(void)
     ADCIntClear(ADC0_BASE, 3);
 }
 
+//*******************************************************************
+void
+initSysTick (void)
+{
+    //
+    // Set up the period for the SysTick timer.  The SysTick timer period is
+    // set as a function of the system clock.
+    SysTickPeriodSet (SysCtlClockGet () / SYSTICK_RATE_HZ);
+    //
+    // Register the interrupt handler
+    SysTickIntRegister (SysTickIntHandler);
+    //
+    // Enable interrupt and device
+    SysTickIntEnable ();
+    SysTickEnable ();
+}
+
 //*****************************************************************************
-// Initialisation functions for the clock (incl. SysTick), ADC, display
+// Initialisation functions for the clock (incl. SysTick), ADC
 //*****************************************************************************
 void
 initClock (void)
@@ -101,6 +132,7 @@ initClock (void)
 void
 initADC (void)
 {
+
 
     initCircBuf (&g_inBuffer, BUF_SIZE);
 
@@ -139,44 +171,36 @@ initADC (void)
 }
 
 
-/*void
-IntPrioritySet(uint32_t INT_GPIOE_TM4C123, uint8_t 4) // setting priority for LEFT button push interrupt (for altitude reset) initially at interrupt priority 4
-{
-
-}*/
-
-
 
 
 int
 main(void)
 
 {
+
+    initClock ();
+    initADC ();
+    initButtons ();
+    initDisplay ();
+    initSysTick();
+    IntMasterEnable(); // Enable interrupts to the processor.
+
     uint16_t i;
     int32_t sum;
 
-    bool TakeLandedSample = true;
     int8_t displayNumber = 0;
+
+    bool TakeLandedSample = true;
     int32_t bufferRoundedMean;
     int32_t landedADCValue = 0;
     int32_t curADCValue = 0;
     int32_t altitudePercentage = 0;
 
 
-
-    initClock ();
-    initADC ();
-    initDisplay ();
-    initButtons ();
-
-
-
-    // Enable interrupts to the processor.
-    IntMasterEnable();
+    SysCtlDelay(300000);
 
     while (true)
     {
-
 
         // Background task: calculate the (approximate) mean of the values in the
         // circular buffer and display it, together with the sample number.
@@ -188,7 +212,6 @@ main(void)
 
         curADCValue = sum / BUF_SIZE;
 
-
         //takes the first sample mean and uses that as the 0%/ landed value
         if(TakeLandedSample)
         {
@@ -196,21 +219,26 @@ main(void)
             TakeLandedSample = false;
         }
 
+
         altitudePercentage = ((landedADCValue - curADCValue)  * 100 / ADC_RANGE);
 
-        updateButtons ();
+        //updateButtons ();
 
-        //updates the display number
-        if (checkButton(UP) == PUSHED)
+        //updates the display number when
+        // the UP button is pressed
+        if (checkButton(UP) == RELEASED)
         {
+            clearDisplay();
             displayNumber++;
             displayNumber %= 3;
         }
 
+
         // sets the landed sampling boolean to true
-        // to recalculate the 0% value
-        if(checkButton(LEFT) == PUSHED)
+        // to recalculate the 0% value if LEFT if pushed
+        if(checkButton(LEFT) == RELEASED)
         {
+            clearDisplay();
             TakeLandedSample = true;
         }
 
@@ -239,7 +267,7 @@ main(void)
                 break;
         }
 
-        SysCtlDelay (SysCtlClockGet() / 6);  // Update display at ~ 2 Hz
+        //SysCtlDelay (SysCtlClockGet() / 100);  // Update display at ~ 2 Hz
     }
 }
 
