@@ -185,19 +185,15 @@ main(void)
     initSysTick();
     IntMasterEnable(); // Enable interrupts to the processor.
 
-    uint16_t i;
-    int32_t sum;
-
+    int32_t sum = 0;
+    int8_t index = 0;
     int8_t displayNumber = 0;
-
     bool TakeLandedSample = true;
-    int32_t bufferRoundedMean;
     int32_t landedADCValue = 0;
     int32_t curADCValue = 0;
     int32_t altitudePercentage = 0;
 
 
-    SysCtlDelay(300000);
 
     while (true)
     {
@@ -205,12 +201,12 @@ main(void)
         // Background task: calculate the (approximate) mean of the values in the
         // circular buffer and display it, together with the sample number.
         sum = 0;
-        for (i = 0; i < BUF_SIZE; i++)
+        for ( index = 0; index < BUF_SIZE; index++)
         {
             sum = sum + readCircBuf (&g_inBuffer);
         }
 
-        curADCValue = sum / BUF_SIZE;
+        curADCValue = (2 * sum + BUF_SIZE) / 2 / BUF_SIZE;
 
         //takes the first sample mean and uses that as the 0%/ landed value
         if(TakeLandedSample)
@@ -222,7 +218,6 @@ main(void)
 
         altitudePercentage = ((landedADCValue - curADCValue)  * 100 / ADC_RANGE);
 
-        //updateButtons ();
 
         //updates the display number when
         // the UP button is pressed
@@ -242,9 +237,6 @@ main(void)
             TakeLandedSample = true;
         }
 
-        // Calculate and display the rounded mean of the buffer contents
-        bufferRoundedMean = (2 * sum + BUF_SIZE) / 2 / BUF_SIZE;
-
 
         switch (displayNumber)
         {
@@ -255,7 +247,7 @@ main(void)
 
             case(1):
                 //Displays the rounded mean value of the buffer
-                displayMeanVal (bufferRoundedMean, g_ulSampCnt);
+                displayMeanVal (curADCValue, g_ulSampCnt);
                 break;
 
             case(2):
@@ -267,7 +259,6 @@ main(void)
                 break;
         }
 
-        //SysCtlDelay (SysCtlClockGet() / 100);  // Update display at ~ 2 Hz
     }
 }
 
