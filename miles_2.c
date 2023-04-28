@@ -123,7 +123,7 @@ main(void)
     int32_t curADCValue = 0;
     int32_t altitudePercentage = 0;
 
-    int32_t yaw;
+    uint32_t yaw;
 
 
 
