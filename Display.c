@@ -12,7 +12,7 @@
 #define SCREEN_LINE_NUM 4
 
 
-//initiliases the dispaly
+//initiliases the display
 void initDisplay (void)
 {
     // intialise the Orbit OLED display
