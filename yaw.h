@@ -37,11 +37,13 @@
 
 #define TEETH_NUM 112 // number of teeth on the disc
 #define STATE_NUM 4 // number of states per tooth
-#define DEGRESS_IN_REV 360 // number of degrees in one revolution
+#define SCALED_DEGREES_IN_REV 3600 // number of degrees in one revolution
 
 
-static int8_t current_state;
-static int8_t previous_state;
+static int8_t current_state = 0;
+static int8_t previous_state = 0;
+
+static uint32_t yaw = 0;
 
 
 // Setting up Interrupt for yaw quadrature encoder
@@ -52,11 +54,9 @@ void initYaw (void);
 void YawIntHandler(void);
 
 
-uint32_t changeYaw(uint32_t yaw);
+uint32_t changeYaw();
 
-uint32_t yawToDegrees(uint32_t yaw);
-
-
+uint32_t yawToDegrees();
 
 
 

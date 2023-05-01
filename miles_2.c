@@ -22,6 +22,7 @@
 #include "circBufT.h"
 #include "Display.h"
 #include "altitude.h"
+#include "yaw.h"
 #include "inc/hw_ints.h"  // Interrupts
 
 //*****************************************************************************
@@ -115,6 +116,7 @@ main(void)
     initButtons ();
     initDisplay ();
     initSysTick();
+    initYaw();
     IntMasterEnable(); // Enable interrupts to the processor.
 
     int8_t displayNumber = 0;
@@ -123,9 +125,7 @@ main(void)
     int32_t curADCValue = 0;
     int32_t altitudePercentage = 0;
 
-    uint32_t yaw;
-
-
+    uint32_t yawInDegrees = 0;
 
 
     while (true)
@@ -148,6 +148,19 @@ main(void)
 
         altitudePercentage = ((landedADCValue - curADCValue)  * 100 / ADC_RANGE);
 
+
+        //*****************************************************************************
+        //Yaw
+        //*****************************************************************************
+
+        yawInDegrees = yawToDegrees();
+
+
+
+        //*****************************************************************************
+        //display
+        //*****************************************************************************
+
         //updates the display number when
         // the UP button is pressed
         if (checkButton(UP) == RELEASED)
@@ -169,7 +182,7 @@ main(void)
         {
             case(0):
                 //Displays the altitude percentage
-                displayAltitude(altitudePercentage);
+                displayAltitudeYaw(altitudePercentage, yawInDegrees);
                 break;
 
             case(1):
@@ -185,10 +198,6 @@ main(void)
             default:
                 break;
         }
-
-        //*****************************************************************************
-        //Yaw
-        // ****************************************************************************
 
 
 

@@ -15,24 +15,16 @@ void initYaw (void)
 
     SysCtlPeripheralEnable (YAW_PERIPH);
 
-    // Yaw Channel A
-    GPIOPinTypeGPIOInput (YAW_PORT_BASE, YAW_A_PIN);
-    GPIOPadConfigSet (YAW_PORT_BASE, YAW_A_PIN, GPIO_STRENGTH_2MA,
+
+
+
+    // Initialisation of the interrupt for quadrature encoding on channel A & B
+    GPIOPadConfigSet (YAW_PORT_BASE, YAW_A_PIN | YAW_B_PIN, GPIO_STRENGTH_2MA,
        GPIO_PIN_TYPE_STD_WPU);
-
-
-    // Yaw Channel B
-    GPIOPinTypeGPIOInput (YAW_PORT_BASE, YAW_B_PIN);
-    GPIOPadConfigSet (YAW_PORT_BASE, YAW_B_PIN, GPIO_STRENGTH_2MA,
-       GPIO_PIN_TYPE_STD_WPU);
-
-
-    // Initialisation of the interrupt for quadrature encoding
     GPIOIntRegister(YAW_PORT_BASE, YawIntHandler);
-    GPIOIntTypeSet(YAW_PORT_BASE, YAW_A_PIN, GPIO_BOTH_EDGES);
-    GPIOIntTypeSet(YAW_PORT_BASE, YAW_B_PIN, GPIO_BOTH_EDGES);
-    GPIOIntEnable(YAW_PORT_BASE, YAW_A_PIN);
-    GPIOIntEnable(YAW_PORT_BASE, YAW_B_PIN);
+    GPIOIntTypeSet(YAW_PORT_BASE, YAW_A_PIN | YAW_B_PIN, GPIO_BOTH_EDGES);
+    GPIOIntEnable(YAW_PORT_BASE, YAW_A_PIN | YAW_B_PIN);
+    IntEnable(INT_GPIOB);
 
 }
 
@@ -44,7 +36,7 @@ void YawIntHandler(void)
 
     previous_state = current_state;
 
-    if (encoderA)
+    if (encoderA) // if channel A leads channel B
     {
         if (encoderB)
         {
@@ -55,7 +47,8 @@ void YawIntHandler(void)
             current_state = 4;
         }
     }
-    else
+    else // if channel b leads channel A
+
     {
         if (encoderB)
         {
@@ -66,28 +59,39 @@ void YawIntHandler(void)
             current_state = 1;
         }
     }
+
+    GPIOIntClear(YAW_PORT_BASE, YAW_A_PIN | YAW_B_PIN);
+
+    yaw = changeYaw();
+
 }
 
 
-uint32_t changeYaw(uint32_t yaw)
+uint32_t changeYaw()
 {
-    if (current_state < previous_state)
+
+    //yaw %= DEGREES_IN_REV;
+
+    if (current_state > previous_state)
     {
-        yaw++;
+        yaw += 2;
     }
-    else
+    else if (current_state < previous_state)
     {
-        yaw--;
+        yaw -= 2;
     }
+
+    yaw += TEETH_NUM * STATE_NUM;
 
     return yaw;
 }
 
-uint32_t yawToDegrees(uint32_t yaw)
+uint32_t yawToDegrees()
 {
 
-    uint32_t degrees = ((yaw * DEGRESS_IN_REV) / (TEETH_NUM * STATE_NUM));
-    return degrees;
+
+    uint32_t yawInDegrees = ((yaw * SCALED_DEGREES_IN_REV) / (TEETH_NUM * STATE_NUM)) / 10;
+    return yawInDegrees % 360;
 }
 
 
