@@ -125,7 +125,8 @@ main(void)
     int32_t curADCValue = 0;
     int32_t altitudePercentage = 0;
 
-    uint32_t yawInDegrees = 0;
+    uint32_t yawInDregrees = 0;
+    uint32_t yawRemainder = 0;
 
 
     while (true)
@@ -153,7 +154,9 @@ main(void)
         //Yaw
         //*****************************************************************************
 
-        yawInDegrees = yawToDegrees();
+        yawInDregrees = yawToDegrees();
+
+        yawRemainder = GetYawRemainder();
 
 
 
@@ -182,7 +185,7 @@ main(void)
         {
             case(0):
                 //Displays the altitude percentage
-                displayAltitudeYaw(altitudePercentage, yawInDegrees);
+                displayAltitudeYaw(altitudePercentage, yawInDregrees, yawRemainder);
                 break;
 
             case(1):
