@@ -108,7 +108,6 @@ initClock (void)
 
 int
 main(void)
-
 {
 
     initClock ();
@@ -125,7 +124,7 @@ main(void)
     int32_t curADCValue = 0;
     int32_t altitudePercentage = 0;
 
-    uint32_t yawInDregrees = 0;
+    int32_t yawInDregrees = 0;
     uint32_t yawRemainder = 0;
 
 
@@ -136,7 +135,7 @@ main(void)
         //Altitude
         //*****************************************************************************
 
-        //calculate the current mean ADC value
+        //calculates the current mean ADC value
         curADCValue = CalculateMeanADC();
 
         //takes the first sample mean and uses that as the 0%/ landed value
@@ -154,9 +153,22 @@ main(void)
         //Yaw
         //*****************************************************************************
 
-        yawInDregrees = yawToDegrees();
+        // Converts the yaw value to degrees rounded to a whole number
+        yawInDregrees = YawToDegrees();
 
+        if (yawInDregrees > 180)
+        {
+            yawInDregrees -= 360;
+        }
+
+        if (yawInDregrees < -179)
+        {
+            yawInDregrees += 360;
+        }
+        // Gets the decimal point for the yaw in degrees
         yawRemainder = GetYawRemainder();
+
+
 
 
 

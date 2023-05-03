@@ -66,7 +66,7 @@ displayMeanVal(uint16_t meanVal, uint32_t count)
 //
 //*****************************************************************************
 void
-displayAltitudeYaw(int32_t altitudePercentage, uint32_t yaw, uint32_t yawRemainder)
+displayAltitudeYaw(int32_t altitudePercentage, int32_t yawInDregrees, uint32_t yawRemainder)
 {
     char string[17];  // 16 characters across the display
 
@@ -78,7 +78,7 @@ displayAltitudeYaw(int32_t altitudePercentage, uint32_t yaw, uint32_t yawRemaind
     // Update line on display.
     OLEDStringDraw (string, 0, 2);
 
-    usnprintf (string, sizeof(string), "yaw = %2d.%1d  DEG", yaw, yawRemainder);
+    usnprintf (string, sizeof(string), "yaw = %2d.%1d DEG  ", yawInDregrees, yawRemainder);
    // Update line on display.
    OLEDStringDraw (string, 0, 3);
 }

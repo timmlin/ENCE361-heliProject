@@ -37,14 +37,14 @@
 
 #define TEETH_NUM 112 // number of teeth on the disc
 #define STATE_NUM 4 // number of states per tooth
-#define SCALED_DEGREES_IN_REV 3600 // number of degrees in one revolution, scaled by a factor of 10
+#define DEGREES_IN_REV 360 // number of degrees in one revolution, scaled by a factor of 10
 
 
 static int8_t current_state = 0;
 static int8_t previous_state = 0;
 
-static uint32_t yaw = 0;
-static uint32_t currentYaw = 0;
+static int32_t yaw = 0;
+static int32_t currentYaw = 0;
 //static uint32_t yawRemainder = 0;
 //static uint32_t ScaledYawInDegrees = 0;
 
@@ -57,9 +57,9 @@ void initYaw (void);
 void YawIntHandler(void);
 
 
-uint32_t changeYaw();
+int32_t changeYaw();
 
-uint32_t YawToDegrees();
+int32_t YawToDegrees();
 
 uint32_t GetYawRemainder();
 

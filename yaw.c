@@ -67,37 +67,70 @@ void YawIntHandler(void)
 }
 
 
-uint32_t changeYaw()
+int32_t changeYaw()
 {
 
 
-    if (current_state > previous_state)
+    switch (current_state)
     {
-        yaw ++;
+    case 1:
+        if (previous_state == 4)
+        {
+            yaw ++;
+        }
+        if (previous_state == 2)
+        {
+         yaw --;
+        }
+        break;
+    case 2:
+        if (previous_state == 1)
+        {
+            yaw ++;
+        }
+        if (previous_state == 3)
+        {
+         yaw --;
+        }
+        break;
+    case 3:
+        if (previous_state == 2)
+        {
+            yaw ++;
+        }
+        if (previous_state == 4)
+        {
+            yaw --;
+        }
+        break;
+    case 4:
+        if (previous_state == 3)
+        {
+            yaw ++;
+        }
+        if (previous_state == 1)
+        {
+            yaw --;
+        }
+        break;
     }
-    else if (current_state < previous_state)
-    {
-        yaw --;
-    }
-
+    yaw %= (TEETH_NUM * STATE_NUM);
     return yaw;
+}
+
+int32_t YawToDegrees()
+{
+    currentYaw = yaw;
+    int32_t YawInDegrees = ((currentYaw * DEGREES_IN_REV * 10) / (TEETH_NUM * STATE_NUM));
+    return (YawInDegrees/10)  % DEGREES_IN_REV; // returns the whole part of the yaw value in degrees
 }
 
 uint32_t GetYawRemainder()
 {
-    currentYaw = yaw;
-    uint32_t YawRemainder = ((currentYaw * SCALED_DEGREES_IN_REV) / (TEETH_NUM * STATE_NUM));
+
+    uint32_t YawRemainder = ((currentYaw * DEGREES_IN_REV * 10 ) / (TEETH_NUM * STATE_NUM));
     return YawRemainder % 10; // will return the decimal point of the angle in degrees
 }
-
-uint32_t YawToDegrees()
-{
-    uint32_t YawInDegrees = ((currentYaw * SCALED_DEGREES_IN_REV) / (TEETH_NUM * STATE_NUM));
-    return YawInDegrees/10; // returns the whole part of the yaw value in degrees
-}
-
-
-
 
 
 
