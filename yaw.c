@@ -121,6 +121,15 @@ int32_t changeYaw()
 int32_t YawToDegrees()
 {
     currentYaw = yaw;
+    if (currentYaw > (TEETH_NUM * STATE_NUM) /2)
+    {
+        yawInDregrees -= TEETH_NUM * STATE_NUM;
+    }
+
+    if (yawInDregrees < -((TEETH_NUM * STATE_NUM) /2) -1)
+    {
+        yawInDregrees += TEETH_NUM * STATE_NUM;
+    }
     int32_t YawInDegrees = ((currentYaw * DEGREES_IN_REV * 10) / (TEETH_NUM * STATE_NUM));
     return (YawInDegrees/10)  % DEGREES_IN_REV; // returns the whole part of the yaw value in degrees
 }

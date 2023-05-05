@@ -156,15 +156,7 @@ main(void)
         // Converts the yaw value to degrees rounded to a whole number
         yawInDregrees = YawToDegrees();
 
-        if (yawInDregrees > 180)
-        {
-            yawInDregrees -= 360;
-        }
 
-        if (yawInDregrees < -179)
-        {
-            yawInDregrees += 360;
-        }
         // Gets the decimal point for the yaw in degrees
         yawRemainder = GetYawRemainder();
 
