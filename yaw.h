@@ -1,8 +1,7 @@
 /*
- * yaw.h
- *
- *  Created on: 20/04/2023
- *      Author: spo88
+ *  Tim Lindbom (tli89)
+ *  & Steph Post (spo88)
+ *  group 55
  */
 
 #ifndef YAW_H_

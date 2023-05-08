@@ -1,9 +1,9 @@
 /*
- * altitude.c
- *
- *  Created on: 20/04/2023
- *      Author: spo88
+ *  Tim Lindbom (tli89)
+ *  & Steph Post (spo88)
+ *  group 55
  */
+
 #include <stdint.h>
 #include <stdbool.h>
 #include "inc/hw_memmap.h"

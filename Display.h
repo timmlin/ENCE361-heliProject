@@ -1,9 +1,9 @@
 /*
- * Display.h
- *
- *  Created on: 19/03/2023
- *      Author: spo88
+ *  Tim Lindbom (tli89)
+ *  & Steph Post (spo88)
+ *  group 55
  */
+
 
 #ifndef DISPLAY_H_
 #define DISPLAY_H_
@@ -12,17 +12,14 @@
 #include "OrbitOLED/OrbitOLEDInterface.h"
 
 
+#define SCREEN_LINE_NUM 4
+#define MAX_DISPLAY_CHAR 17
 
-void initDisplay(void); // initialise the Orbit display
 
 void clearDisplay(void); // clears every line of the contents of the OLED display
 
-void displayMeanVal(uint16_t meanVal, uint32_t count); // displays the rounded mean value of the buffer
 
-void displayAltitudeYaw(int32_t altitudePercentage, int32_t yawInDregrees, uint32_t yawRemainder); // displays the altitude percentage and yaw on the OLED
-
-
-
+void displayOLED(int32_t altitudePercentage, int32_t yawInDregrees, uint32_t yawRemainder); // displays the altitude percentage and yaw on the OLED
 
 
 
