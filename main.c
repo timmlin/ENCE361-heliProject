@@ -119,16 +119,17 @@ main(void)
     IntMasterEnable(); // Enable interrupts to the processor.
 
 
-    enum states
-    {
-        LANDED,
-        TAKEOFF,
-        FLYING,
-        LANDING
-    };
+    enum States
+       {
+           NONE = 0,
+           LANDED,
+           TAKEOFF,
+           FLYING,
+           LANDING
+       };
 
-    state currentState = LANDED;
-    state previousState = NULL;
+       enum States currentState  = LANDED;
+       enum States previousState =  NONE;
     int32_t landedADCValue = 0;
     int32_t curADCValue = 0;
     int32_t altitudePercentage = 0;
