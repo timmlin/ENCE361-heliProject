@@ -9,6 +9,8 @@
  * initialiseMainPWM
  * M0PWM7 (J4-05, PC5) is used for the main rotor motor
  *********************************************************/
+#include "PWM.h"
+
 void
 initialiseMainPWM (void)
 {

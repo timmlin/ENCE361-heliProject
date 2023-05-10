@@ -13,9 +13,6 @@ void initYaw (void)
 
     SysCtlPeripheralEnable (YAW_PERIPH);
 
-
-
-
     // Initialisation of the interrupt for quadrature encoding on channel A & B
     GPIOPadConfigSet (YAW_PORT_BASE, YAW_A_PIN | YAW_B_PIN, GPIO_STRENGTH_2MA,
        GPIO_PIN_TYPE_STD_WPU);

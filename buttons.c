@@ -12,19 +12,14 @@
 //
 // P.J. Bones UCECE
 // Last modified:  7.2.2018
+
+// Modified by Stephanie Post and Tim Lindbom
 // 
 // *******************************************************
 
-#include <buttons.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include "inc/hw_memmap.h"
-#include "inc/hw_types.h"
-#include "driverlib/gpio.h"
-#include "driverlib/sysctl.h"
-#include "driverlib/debug.h"
-#include "inc/tm4c123gh6pm.h"  // Board specific defines (for PF0)
 
+#include "inc/tm4c123gh6pm.h"  // Board specific defines (for PF0)
+#include "buttons.h"
 
 // *******************************************************
 // Globals to module
@@ -34,12 +29,22 @@ static uint8_t but_count[NUM_BUTS];
 static bool but_flag[NUM_BUTS];
 static bool but_normal[NUM_BUTS];   // Corresponds to the electrical state
 
+volatile bool UP_BUTTON_FLAG;
+volatile bool DOWN_BUTTON_FLAG;
+volatile bool LEFT_BUTTON_FLAG;
+volatile bool RIGHT_BUTTON_FLAG;
+
 // *******************************************************
 // initButtons: Initialise the variables associated with the set of buttons
 // defined by the constants in the buttons2.h header file.
 void
 initButtons (void)
 {
+    //resets peripherals as a precaution
+    SysCtlPeripheralReset (UP_BUT_PERIPH);        // UP button GPIO
+    SysCtlPeripheralReset (DOWN_BUT_PERIPH);      // DOWN button GPIO
+    SysCtlPeripheralReset (LEFT_BUT_PERIPH);      // LEFT button GPIO
+    SysCtlPeripheralReset (RIGHT_BUT_PERIPH);     // RIGHT button GPIO
 	int i;
 
 	// UP button (active HIGH)
@@ -47,23 +52,39 @@ initButtons (void)
     GPIOPinTypeGPIOInput (UP_BUT_PORT_BASE, UP_BUT_PIN);
     GPIOPadConfigSet (UP_BUT_PORT_BASE, UP_BUT_PIN, GPIO_STRENGTH_2MA,
        GPIO_PIN_TYPE_STD_WPD);
+    GPIOIntRegister(UP_BUT_PORT_BASE, buttonsIntHandler);
+    GPIOIntTypeSet(UP_BUT_PORT_BASE, UP_BUT_PIN, GPIO_FALLING_EDGE);
+    GPIOIntEnable(UP_BUT_PORT_BASE, UP_BUT_PIN);
     but_normal[UP] = UP_BUT_NORMAL;
+
+
 	// DOWN button (active HIGH)
     SysCtlPeripheralEnable (DOWN_BUT_PERIPH);
     GPIOPinTypeGPIOInput (DOWN_BUT_PORT_BASE, DOWN_BUT_PIN);
     GPIOPadConfigSet (DOWN_BUT_PORT_BASE, DOWN_BUT_PIN, GPIO_STRENGTH_2MA,
        GPIO_PIN_TYPE_STD_WPD);
+    GPIOIntRegister(DOWN_BUT_PORT_BASE, buttonsIntHandler);
+    GPIOIntTypeSet(DOWN_BUT_PORT_BASE, DOWN_BUT_PIN, GPIO_FALLING_EDGE);
+    GPIOIntEnable(DOWN_BUT_PORT_BASE, DOWN_BUT_PIN);
     but_normal[DOWN] = DOWN_BUT_NORMAL;
+
+
     // LEFT button (active LOW)
     SysCtlPeripheralEnable (LEFT_BUT_PERIPH);
     GPIOPinTypeGPIOInput (LEFT_BUT_PORT_BASE, LEFT_BUT_PIN);
     GPIOPadConfigSet (LEFT_BUT_PORT_BASE, LEFT_BUT_PIN, GPIO_STRENGTH_2MA,
        GPIO_PIN_TYPE_STD_WPU);
+    GPIOIntRegister(LEFT_BUT_PORT_BASE, buttonsIntHandler);
+    //left and right buttons on the same port base
+    GPIOIntTypeSet(LEFT_BUT_PORT_BASE, LEFT_BUT_PIN | RIGHT_BUT_PIN, GPIO_RISING_EDGE);
+    GPIOIntEnable(LEFT_BUT_PORT_BASE, LEFT_BUT_PIN | RIGHT_BUT_PIN);
     but_normal[LEFT] = LEFT_BUT_NORMAL;
+
+
     // RIGHT button (active LOW)
-      // Note that PF0 is one of a handful of GPIO pins that need to be
-      // "unlocked" before they can be reconfigured.  This also requires
-      //      #include "inc/tm4c123gh6pm.h"
+    // Note that PF0 is one of a handful of GPIO pins that need to be
+    // "unlocked" before they can be reconfigured.  This also requires
+    // #include "inc/tm4c123gh6pm.h"
     SysCtlPeripheralEnable (RIGHT_BUT_PERIPH);
     //---Unlock PF0 for the right button:
     GPIO_PORTF_LOCK_R = GPIO_LOCK_KEY;
@@ -74,12 +95,26 @@ initButtons (void)
        GPIO_PIN_TYPE_STD_WPU);
     but_normal[RIGHT] = RIGHT_BUT_NORMAL;
 
+    //SWITCH 1 for take-off and landing (active HIGH)
+    SysCtlPeripheralEnable (SWITCH1_PERIPH);
+    GPIOPinTypeGPIOInput (SWITCH1_PORT_BASE, SWITCH1_PIN);
+    GPIOPadConfigSet (SWITCH1_PORT_BASE, SWITCH1_PIN, GPIO_STRENGTH_2MA,
+       GPIO_PIN_TYPE_STD_WPD);
+    but_normal[SWITCH1] = SWITCH1_NORMAL;
+
+
 	for (i = 0; i < NUM_BUTS; i++)
 	{
 		but_state[i] = but_normal[i];
 		but_count[i] = 0;
 		but_flag[i] = false;
 	}
+
+
+
+
+
+    IntEnable(INT_GPIOB);
 }
 
 // *******************************************************
@@ -137,4 +172,64 @@ checkButton (uint8_t butName)
 	}
 	return NO_CHANGE;
 }
+
+
+void buttonsIntHandler()
+{
+
+
+
+    if (checkButton (UP) == PUSHED)
+    {
+        UP_BUTTON_FLAG = true;
+
+        GPIOIntClear(UP_BUT_PORT_BASE, UP_BUT_PIN);
+    }
+    if (checkButton (DOWN) == PUSHED)
+    {
+
+        GPIOIntClear(DOWN_BUT_PORT_BASE, LEFT_BUT_PIN);
+    }
+    if (checkButton (LEFT) == PUSHED)
+    {
+
+        GPIOIntClear(LEFT_BUT_PORT_BASE, LEFT_BUT_PIN);
+    }
+    if (checkButton (RIGHT) == PUSHED)
+    {
+
+        GPIOIntClear(RIGHT_BUT_PORT_BASE,  RIGHT_BUT_PIN);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 

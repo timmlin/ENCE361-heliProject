@@ -16,11 +16,20 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "inc/hw_memmap.h"
+#include "inc/hw_types.h"
+#include "driverlib/sysctl.h"
+#include "driverlib/debug.h"
+#include "driverlib/interrupt.h"
+#include "driverlib/gpio.h"
+
+
+
 
 //*****************************************************************************
 // Constants
 //*****************************************************************************
-enum butNames {UP = 0, DOWN, LEFT, RIGHT, NUM_BUTS};
+enum butNames {UP = 0, DOWN, LEFT, RIGHT, SWITCH1, NUM_BUTS};
 enum butStates {RELEASED = 0, PUSHED, NO_CHANGE};
 // UP button
 #define UP_BUT_PERIPH  SYSCTL_PERIPH_GPIOE
@@ -42,6 +51,17 @@ enum butStates {RELEASED = 0, PUSHED, NO_CHANGE};
 #define RIGHT_BUT_PORT_BASE  GPIO_PORTF_BASE
 #define RIGHT_BUT_PIN  GPIO_PIN_0
 #define RIGHT_BUT_NORMAL  true
+// SWITCH 1
+#define SWITCH1_PERIPH  SYSCTL_PERIPH_GPIOA
+#define SWITCH1_PORT_BASE  GPIO_PORTA_BASE
+#define SWITCH1_PIN  GPIO_PIN_7
+#define SWITCH1_NORMAL  false
+
+//interrupt binary flags
+extern volatile bool  UP_BUTTON_FLAG;
+extern volatile bool DOWN_BUTTON_FLAG;
+extern volatile bool LEFT_BUTTON_FLAG;
+extern volatile bool RIGHT_BUTTON_FLAG;
 
 #define NUM_BUT_POLLS 3
 // Debounce algorithm: A state machine is associated with each button.
@@ -52,8 +72,14 @@ enum butStates {RELEASED = 0, PUSHED, NO_CHANGE};
 // *******************************************************
 // initButtons: Initialise the variables associated with the set of buttons
 // defined by the constants above.
+// enables interupts on the buttons as well
 void
 initButtons (void);
+
+
+
+//interupt handler for buttons
+void buttonsIntHandler(void);
 
 // *******************************************************
 // updateButtons: Function designed to be called regularly. It polls all
@@ -72,3 +98,5 @@ uint8_t
 checkButton (uint8_t butName);
 
 #endif /*BUTTONS_H_*/
+
+

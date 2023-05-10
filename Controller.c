@@ -36,7 +36,7 @@ int32_t prevErrorTail = 0;
 int32_t TargetAltitude = 0;
 int32_t TargetYaw = 0;
 
-errorMain = TargetAltitude - CurrentAltitude;
+int32_t errorMain = TargetAltitude - CurrentAltitude;
 
 // *******************************************************
 // Main Rotor PID control for Altitude

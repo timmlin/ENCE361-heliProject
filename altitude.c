@@ -4,20 +4,7 @@
  *  group 55
  */
 
-#include <stdint.h>
-#include <stdbool.h>
-#include "inc/hw_memmap.h"
-#include "inc/hw_types.h"
-#include "driverlib/adc.h"
-#include "driverlib/sysctl.h"
-#include "driverlib/systick.h"
-#include "driverlib/interrupt.h"
-#include "driverlib/debug.h"
-#include "utils/ustdlib.h"
-#include "stdlib.h"
-#include "circBufT.h"
 #include "altitude.h"
-#include "inc/hw_ints.h"  // Interrupts
 
 //constants
 #define BUF_SIZE 25

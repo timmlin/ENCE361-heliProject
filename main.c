@@ -4,26 +4,16 @@
  *  group 55
  */
 
-#include <buttons.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "inc/hw_memmap.h"
-#include "inc/hw_types.h"
-#include "driverlib/adc.h"
-#include "driverlib/pwm.h"
-#include "driverlib/gpio.h"
-#include "driverlib/sysctl.h"
-#include "driverlib/systick.h"
-#include "driverlib/interrupt.h"
-#include "driverlib/debug.h"
-#include "utils/ustdlib.h"
-#include "OrbitOLED/OrbitOLEDInterface.h"
+
 #include "stdlib.h"
 #include "circBufT.h"
 #include "Display.h"
 #include "altitude.h"
 #include "yaw.h"
-#include "inc/hw_ints.h"  // Interrupts
+#include "PWM.h"
+#include "buttons.h"
 
 //*****************************************************************************
 // Constants
@@ -35,12 +25,15 @@
 #define ADC_RANGE 1241
 
 
+
+
 //*****************************************************************************
 // Global variables
 //*****************************************************************************
 static uint32_t g_ulSampCnt;    // Counter for the interrupts
 
 volatile uint8_t slowTick = false;
+
 
 //*****************************************************************************
 //
@@ -115,10 +108,7 @@ main(void)
     SysCtlPeripheralReset (TAIL_PWM_PERIPH_GPIO); // Used for PWM output for the tail
     SysCtlPeripheralReset (TAIL_PWM_PERIPH_PWM);  // Tail Rotor PWM
 
-    SysCtlPeripheralReset (UP_BUT_PERIPH);        // UP button GPIO
-    SysCtlPeripheralReset (DOWN_BUT_PERIPH);      // DOWN button GPIO
-    SysCtlPeripheralReset (LEFT_BUT_PERIPH);      // LEFT button GPIO
-    SysCtlPeripheralReset (RIGHT_BUT_PERIPH);     // RIGHT button GPIO
+
 
     initClock();
     initADC();
@@ -133,15 +123,15 @@ main(void)
 
     enum States
        {
-           NONE = 0,
-           LANDED,
+           LANDED = 0,
            TAKEOFF,
            FLYING,
            LANDING
        };
 
     enum States currentState  = LANDED;
-    enum States previousState =  NONE;
+    enum States previousState = LANDED;
+    bool stateChange = false;
     int32_t landedADCValue = 0;
     int32_t curADCValue = 0;
     int32_t altitudePercentage = 0;
@@ -154,84 +144,83 @@ main(void)
     landedADCValue = CalculateMeanADC();
 
 
+    //*****************************************************************************
+    // Finite State Machine
+    //*****************************************************************************
     while (true)
     {
 
         if (currentState != previousState)
         {
-            previousState = currentState;
-
-            switch(currentState)
-            {
-            case LANDED:
-                //
-                break;
-            case TAKEOFF:
-                //
-                break;
-
-            case FLYING:
-
-                // Background task: Check for button pushes and control
-                // the PWM frequency within a fixed range.
-                if ((checkButton (UP) == PUSHED) && (ui32Freq < PWM_RATE_MAX_HZ))
-                {
-                    ui32Freq += PWM_RATE_STEP_HZ;
-                    displayPWM ("MainPWM", "Freq",  ui32Freq, 0);
-
-                }
-
-                if ((checkButton (DOWN) == PUSHED) && (ui32Freq > PWM_RATE_MIN_HZ))
-                {
-                    ui32Freq -= PWM_RATE_STEP_HZ;
-
-                }
-
-
-                //increases the duty by 5% and limits it to 95% of the maximum duty cycle
-                if ((checkButton (RIGHT) == PUSHED) && (ui32Freq < PWM_RATE_MAX_HZ))
-                {
-                    newDuty = ui32Duty + 5;
-
-                    if (newDuty <=  PWM_MAX_DUTY)
-                    {
-                        ui32Duty = newDuty;
-                    }
-                    else
-                    {
-                        ui32Duty = PWM_MAX_DUTY;
-                    }
-
-                }
-                //decreases the duty cycle by 5% and limits it to 5% of the minimum duty cycle
-                if ((checkButton (LEFT) == PUSHED) && (ui32Duty > PWM_MIN_DUTY))
-                {
-                    newDuty = ui32Duty - 5;
-
-                    if (newDuty >=  PWM_MIN_DUTY)
-                    {
-                        ui32Duty = newDuty;
-                    }
-                    else
-                    {
-                        ui32Duty = PWM_MIN_DUTY;
-
-                    }
-
-                }
-
-
-                setMainPWM (ui32Freq, ui32Duty);
-
-            break;
-
-            case LANDING:
-                //
-                break;
-            }
-
+            stateChange = true;
             previousState = currentState;
         }
+
+        switch(currentState)
+        {
+        case LANDED:
+
+
+            //
+            break;
+        case TAKEOFF:
+            //
+            break;
+
+        case FLYING:
+
+            // Background task: Check for button flags are set
+            if(UP_BUTTON_FLAG)
+            {
+                UP_BUTTON_FLAG = false;
+                /*
+                    do up button stuff
+
+               */
+
+            }
+
+            if (DOWN_BUTTON_FLAG)
+            {
+                DOWN_BUTTON_FLAG = false;
+                /*
+                    do down button stuff
+
+               */
+            }
+
+
+            if (LEFT_BUTTON_FLAG)
+            {
+                LEFT_BUTTON_FLAG = false;
+                /*
+                    do left button stuff
+
+               */
+
+
+            }
+
+            if (RIGHT_BUTTON_FLAG)
+            {
+                RIGHT_BUTTON_FLAG = false;
+                /*
+                   do left button stuff
+
+              */
+
+            }
+
+        break;
+
+        case LANDING:
+            //
+            break;
+        }
+
+
+
+
         //*****************************************************************************
         //Altitude
         //*****************************************************************************
@@ -263,29 +252,7 @@ main(void)
         displayOLED(altitudePercentage, yawInDregrees, yawRemainder);
 
 
-        //*****************************************************************************
-        //button polling
-        //*****************************************************************************
 
-        if(checkButton(UP) == RELEASED)
-        {
-            //
-        }
-
-        if(checkButton(DOWN) == RELEASED)
-        {
-            //
-        }
-
-        if(checkButton(LEFT) == RELEASED)
-        {
-            //
-        }
-
-        if(checkButton(RIGHT) == RELEASED)
-        {
-            //
-        }
 
 
 

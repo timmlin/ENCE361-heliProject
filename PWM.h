@@ -16,15 +16,13 @@
 #include "driverlib/adc.h"
 #include "driverlib/pin_map.h" //Needed for pin configure
 #include "driverlib/debug.h"
-#include "driverlib/gpio.h"
 #include "driverlib/pwm.h"
+#include "driverlib/gpio.h"
 #include "driverlib/systick.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/interrupt.h"
-#include "buttons4.h"
 #include "utils/ustdlib.h"
 #include "stdlib.h"
-#include "OrbitOLED/OrbitOLEDInterface.h" // for display
 
 
 
