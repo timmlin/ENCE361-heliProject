@@ -109,6 +109,16 @@ initClock (void)
 int
 main(void)
 {
+    // As a precaution, make sure that the peripherals used are reset
+    SysCtlPeripheralReset (PWM_MAIN_PERIPH_GPIO); // Used for PWM output
+    SysCtlPeripheralReset (PWM_MAIN_PERIPH_PWM);  // Main Rotor PWM
+    SysCtlPeripheralReset (TAIL_PWM_PERIPH_GPIO); // Used for PWM output for the tail
+    SysCtlPeripheralReset (TAIL_PWM_PERIPH_PWM);  // Tail Rotor PWM
+
+    SysCtlPeripheralReset (UP_BUT_PERIPH);        // UP button GPIO
+    SysCtlPeripheralReset (DOWN_BUT_PERIPH);      // DOWN button GPIO
+    SysCtlPeripheralReset (LEFT_BUT_PERIPH);      // LEFT button GPIO
+    SysCtlPeripheralReset (RIGHT_BUT_PERIPH);     // RIGHT button GPIO
 
     initClock();
     initADC();
@@ -116,6 +126,8 @@ main(void)
     OLEDInitialise();
     initSysTick();
     initYaw();
+    initialiseMainPWM (); //initilises the main PWM signal
+    initialiseTailPWM(); // initilises  and sets the PWM signal for the tail motor
     IntMasterEnable(); // Enable interrupts to the processor.
 
 
@@ -128,8 +140,8 @@ main(void)
            LANDING
        };
 
-       enum States currentState  = LANDED;
-       enum States previousState =  NONE;
+    enum States currentState  = LANDED;
+    enum States previousState =  NONE;
     int32_t landedADCValue = 0;
     int32_t curADCValue = 0;
     int32_t altitudePercentage = 0;
@@ -147,6 +159,8 @@ main(void)
 
         if (currentState != previousState)
         {
+            previousState = currentState;
+
             switch(currentState)
             {
             case LANDED:
@@ -155,9 +169,62 @@ main(void)
             case TAKEOFF:
                 //
                 break;
+
             case FLYING:
-                //
-                break;
+
+                // Background task: Check for button pushes and control
+                // the PWM frequency within a fixed range.
+                if ((checkButton (UP) == PUSHED) && (ui32Freq < PWM_RATE_MAX_HZ))
+                {
+                    ui32Freq += PWM_RATE_STEP_HZ;
+                    displayPWM ("MainPWM", "Freq",  ui32Freq, 0);
+
+                }
+
+                if ((checkButton (DOWN) == PUSHED) && (ui32Freq > PWM_RATE_MIN_HZ))
+                {
+                    ui32Freq -= PWM_RATE_STEP_HZ;
+
+                }
+
+
+                //increases the duty by 5% and limits it to 95% of the maximum duty cycle
+                if ((checkButton (RIGHT) == PUSHED) && (ui32Freq < PWM_RATE_MAX_HZ))
+                {
+                    newDuty = ui32Duty + 5;
+
+                    if (newDuty <=  PWM_MAX_DUTY)
+                    {
+                        ui32Duty = newDuty;
+                    }
+                    else
+                    {
+                        ui32Duty = PWM_MAX_DUTY;
+                    }
+
+                }
+                //decreases the duty cycle by 5% and limits it to 5% of the minimum duty cycle
+                if ((checkButton (LEFT) == PUSHED) && (ui32Duty > PWM_MIN_DUTY))
+                {
+                    newDuty = ui32Duty - 5;
+
+                    if (newDuty >=  PWM_MIN_DUTY)
+                    {
+                        ui32Duty = newDuty;
+                    }
+                    else
+                    {
+                        ui32Duty = PWM_MIN_DUTY;
+
+                    }
+
+                }
+
+
+                setMainPWM (ui32Freq, ui32Duty);
+
+            break;
+
             case LANDING:
                 //
                 break;
