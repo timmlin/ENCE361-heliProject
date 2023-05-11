@@ -14,6 +14,7 @@
 #include "yaw.h"
 #include "PWM.h"
 #include "buttons.h"
+#include "Controller.h"
 
 //*****************************************************************************
 // Constants
@@ -128,17 +129,20 @@ main(void)
            FLYING,
            LANDING
        };
-
     enum States currentState  = LANDED;
     enum States previousState = LANDED;
+
     bool stateChange = false;
     int32_t landedADCValue = 0;
     int32_t curADCValue = 0;
     int32_t altitudePercentage = 0;
+    int32_t targetAltitude = 0;
 
     int32_t yawInDregrees = 0;
     uint32_t yawRemainder = 0;
 
+    // used to calculate deltaT for the timer intergral
+    uint32_t loopCounter = 0;
 
     //takes the initial sample mean and uses that as the 0%/ landed value
     landedADCValue = CalculateMeanADC();
@@ -149,6 +153,8 @@ main(void)
     //*****************************************************************************
     while (true)
     {
+        loopCounter++;
+
 
         if (currentState != previousState)
         {
@@ -204,10 +210,8 @@ main(void)
             if (RIGHT_BUTTON_FLAG)
             {
                 RIGHT_BUTTON_FLAG = false;
-                /*
-                   do left button stuff
 
-              */
+                targetYawInDegrees += 15
 
             }
 
@@ -229,7 +233,7 @@ main(void)
         curADCValue = CalculateMeanADC();
 
 
-        altitudePercentage = ((landedADCValue - curADCValue)  * 100 / ADC_RANGE);
+        currentAltitudePercentage = ((landedADCValue - curADCValue)  * 100 / ADC_RANGE);
 
 
         //*****************************************************************************
@@ -243,6 +247,24 @@ main(void)
         // Gets the decimal point for the yaw in degrees
         yawRemainder = GetYawRemainder();
 
+
+        //*****************************************************************************
+        //PID Control
+        //*****************************************************************************
+        if (currentAltitudePercentage != targetAltitudePercentage).3
+
+        {
+            MainRotorControlUpdate(int32_t TargetAltitude, int32_t altitudePercentage, 0.1);
+
+            loopCounter = 0;
+        }
+
+        if (currentYaw != targetYaw)
+        {
+            TailRotorControlUpdate (int32_t TargetYaw, int32_t CurrentYawInDegreers, 0.1);
+
+            loopCounter = 0;
+        }
 
 
         //*****************************************************************************

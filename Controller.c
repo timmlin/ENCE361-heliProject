@@ -5,19 +5,6 @@
  */
 
 
-#include <stdint.h>
-#include <stdbool.h>
-#include "inc/hw_memmap.h"
-#include "inc/hw_types.h"
-#include "driverlib/gpio.h"
-#include "driverlib/sysctl.h"
-#include "driverlib/systick.h"
-#include "driverlib/interrupt.h"
-#include "driverlib/debug.h"
-#include "utils/ustdlib.h"
-#include "stdlib.h"
-#include "inc/hw_ints.h"
-
 
 #define MAX_OUTPUT_MAIN
 #define MIN_OUTPUT_MAIN
@@ -36,21 +23,22 @@ int32_t prevErrorTail = 0;
 int32_t TargetAltitude = 0;
 int32_t TargetYaw = 0;
 
-int32_t errorMain = TargetAltitude - CurrentAltitude;
-
 // *******************************************************
 // Main Rotor PID control for Altitude
 // *******************************************************
-(void) MainRotorControlUpdate ()
+(void) MainRotorControlUpdate (int32_t TargetAltitude, int32_t altitudePercentage, uint32_t deltaT)
 {
+    int32_t errorMain = TargetAltitude - CurrentAltitude; // Error calculation for altitude
 
-    PMain = KpMain * errorMain; // Proportional control
-    dIMain = KiMain * errorMain * TMain;
-    DMain = (KdMain/TMain) * (errorMain - prevErrorMain);
+    //PID controller calculated
+
+    PMain = KP_MAIN * errorMain; // Proportional control
+    dIMain = KI_MAIN * errorMain * deltaT; // constantly updating part of integral control
+    DMain = KD_MAIN * (errorMain - prevErrorMain)/deltaT; // derivative control
 
     controlMain = PMain + (IMain + dIMain) + DMain;
 
-    prevErrorMain = errorMain;
+    prevErrorMain = errorMain; // updates previous error for altitude
 
 // Place limits on the output
 
@@ -60,13 +48,13 @@ int32_t errorMain = TargetAltitude - CurrentAltitude;
         controlMain = MIN_OUTPUT_MAIN;
     else
         IMain += dIMain; // accumulates error signal from main rotor only if controller output is within the specified limits
-    }
 
+}
 // *******************************************************
 // Tail Rotor PID control for Yaw
 // *******************************************************
 
-(void) TailRotorControlUpdate ()
+(void) TailRotorControlUpdate (int32_t TargetYaw, int32_t CurrentYawInDegreers, uint32_t deltaT)
 {
 
     PTail = KpTail * errorTail;
@@ -75,7 +63,7 @@ int32_t errorMain = TargetAltitude - CurrentAltitude;
 
     controlTail = PTail + (ITail + dITail) + DTail;
 
-    prevErrorTail = errorTail;
+    prevErrorTail = errorTail; // updates previous error for yaw
 
     // Place limits on the output
 
