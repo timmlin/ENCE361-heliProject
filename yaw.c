@@ -8,7 +8,7 @@
 #include "yaw.h"
 
 
-volatile bool isYawCalibrated;
+volatile bool isYawCalibrated = false;
 
 // Setting up Interrupt for yaw quadrature encoder
 void initYaw (void)
@@ -90,10 +90,11 @@ void YawIntHandler(void)
 
 void refYawIntHandler(void)
 {
+    GPIOIntClear(YAW_REF_PORT_BASE, YAW_REF_PIN);
     GPIOPinRead(YAW_REF_PORT_BASE, YAW_REF_PIN);
     yaw = 0;
     isYawCalibrated = true;
-    disableRefYawInt(true); // disable ref yaw interrupt
+
 }
 
 

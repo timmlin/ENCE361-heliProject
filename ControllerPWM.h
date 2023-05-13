@@ -26,14 +26,14 @@
 #define SYSTICK_RATE_HZ    100
 
 // PWM configuration
-#define PWM_START_RATE_HZ  250
-#define PWM_RATE_STEP_HZ   50
-#define PWM_RATE_MIN_HZ    50
-#define PWM_RATE_MAX_HZ    400
-#define PWM_FIXED_DUTY     67
-#define PWM_MIN_DUTY       5
-#define PWM_MAX_DUTY       95
-#define PWM_DIVIDER_CODE   SYSCTL_PWMDIV_4
+//#define PWM_START_RATE_HZ  250
+//#define PWM_RATE_STEP_HZ   50
+//#define PWM_RATE_MIN_HZ    50
+//#define PWM_RATE_MAX_HZ    400
+//#define PWM_FIXED_DUTY     67
+//#define PWM_MIN_DUTY       5
+//#define PWM_MAX_DUTY       95
+//#define PWM_DIVIDER_CODE   SYSCTL_PWMDIV_4
 #define PWM_DIVIDER        4
 
 /**********************************************************
@@ -86,9 +86,9 @@ void initialiseMainPWM (void);
 
 void initialiseTailPWM(void);
 
-void setMainPWM (uint32_t u32Freq, uint32_t u32Duty);
+void setMainPWM (uint32_t MainPWMFreq, uint32_t MainPWMDuty);
 
-void setTailPWM (uint32_t value);
+void setTailPWM (uint32_t TailPWMFreq, uint32_t TailPWMDuty);
 
 void MainRotorControlUpdate (int32_t TargetAltitude, int32_t altitudePercentage, float deltaT);
 

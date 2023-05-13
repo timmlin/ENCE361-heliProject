@@ -135,7 +135,6 @@ main(void)
     int stateNum = 0;
 
     bool stateChange = false;
-    bool isYawCalibrated = false;
     int32_t landedADCValue = 0;
 
     int32_t curADCValue = 0;
@@ -146,7 +145,7 @@ main(void)
     int32_t currentYawInDegrees = 0;
     uint32_t yawRemainder = 0;
 
-    // used to calculate deltaT for the timer intergral
+    // used to calculate deltaT for the timer integral
     uint32_t loopCounter = 0;
 
     //takes the initial sample mean and uses that as the 0%/ landed value
@@ -196,17 +195,21 @@ main(void)
 
                 //go up here to TransitionHoverAltitude = 5% ??
                 //PID control used here but could possibly be disabled if it's a problem
-                targetAltitudePercentage = 5;
+               // targetAltitudePercentage = 5;
 
             }
 
             if(!isYawCalibrated)
             {
                 disableRefYawInt(false); // enable ref yaw interrupt
-                setTailPWM(50);
+
+                setMainPWM (250, 50);
+                setTailPWM(250, 80);
             }
             else
             {
+
+               disableRefYawInt(true); // disable ref yaw interrupt
                currentState = FLYING;
                stateNum = 2;
                stateChange = true;
@@ -261,7 +264,7 @@ main(void)
 
             //enable ref yaw interrupt
             disableRefYawInt(false);
-            setTailPWM(FIND_REF_YAW_DUTY_CYCLE);
+            //setTailPWM(FIND_REF_YAW_DUTY_CYCLE);
 
 
             break;

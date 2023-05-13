@@ -41,13 +41,11 @@ initialiseMainPWM (void)
 
     PWMGenConfigure(PWM_MAIN_BASE, PWM_MAIN_GEN,
                     PWM_GEN_MODE_UP_DOWN | PWM_GEN_MODE_NO_SYNC);
-    // Set the initial PWM parameters
-    setMainPWM (PWM_START_RATE_HZ, PWM_FIXED_DUTY);
 
     PWMGenEnable(PWM_MAIN_BASE, PWM_MAIN_GEN);
 
     // Disable the output.  Repeat this call with 'true' to turn O/P on.
-    PWMOutputState(PWM_MAIN_BASE, PWM_MAIN_OUTBIT, false);
+    PWMOutputState(PWM_MAIN_BASE, PWM_MAIN_OUTBIT, true);
 
 }
 
@@ -76,17 +74,16 @@ void initialiseTailPWM()
 //***********************************************************
 // Function to set the frequency, duty cycle of the Main PWM
 //***********************************************************
-void
-setMainPWM (uint32_t ui32Freq, uint32_t ui32Duty)
+void setMainPWM (uint32_t MainPWMFreq, uint32_t MainPWMDuty)
 {
     // Calculate the PWM period corresponding to the frequency
-    uint32_t ui32Period =
-        SysCtlClockGet() / PWM_DIVIDER / ui32Freq;
+    uint32_t MainPWMPeriod =
+        SysCtlClockGet() / PWM_DIVIDER / MainPWMFreq;
 
-    PWMGenPeriodSet(PWM_MAIN_BASE, PWM_MAIN_GEN, ui32Period);
+    PWMGenPeriodSet(PWM_MAIN_BASE, PWM_MAIN_GEN, MainPWMPeriod);
 
     PWMPulseWidthSet(PWM_MAIN_BASE, PWM_MAIN_OUTNUM,
-        ui32Period * ui32Duty / 100);
+                     MainPWMPeriod * MainPWMDuty / 100);
 }
 
 
@@ -94,16 +91,16 @@ setMainPWM (uint32_t ui32Freq, uint32_t ui32Duty)
 //***********************************************************
 // Function to set the frequency, duty cycle of the Tail PWM
 //***********************************************************
-void setTailPWM (uint32_t PWMduty)
+void setTailPWM (uint32_t TailPWMFreq, uint32_t TailPWMduty)
 {
     // Calculate the PWM period corresponding to the frequency
-        uint32_t ui32Period =
-            SysCtlClockGet() / PWM_DIVIDER / TAIL_PWM_START_RATE_HZ;
+        uint32_t TailPWMPeriod =
+            SysCtlClockGet() / PWM_DIVIDER / TailPWMFreq;
 
-        PWMGenPeriodSet(TAIL_PWM_BASE, TAIL_PWM_GEN, ui32Period);
+        PWMGenPeriodSet(TAIL_PWM_BASE, TAIL_PWM_GEN, TailPWMPeriod);
 
         PWMPulseWidthSet(TAIL_PWM_BASE, TAIL_PWM_OUTNUM,
-            ui32Period * PWMduty / 100);
+                         TailPWMPeriod * TailPWMduty / 100);
 }
 
 
