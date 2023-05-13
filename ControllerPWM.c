@@ -4,12 +4,30 @@
  *  group 55
  */
 
+#include "ControllerPWM.h"
+
+
+#define MAX_OUTPUT_MAIN
+#define MIN_OUTPUT_MAIN
+#define MAX_OUTPUT_TAIL
+#define MIN_OUTPUT_TAIL
+
+
+// Initialise Error signal
+
+int32_t errorMain = 0;
+int32_t prevErrorMain = 0;
+
+int32_t errorTail = 0;
+int32_t prevErrorTail = 0;
+
+int32_t TargetAltitudePercentage = 0;
+int32_t TargetYawInDegrees = 0;
 
 /*********************************************************
  * initialiseMainPWM
  * M0PWM7 (J4-05, PC5) is used for the main rotor motor
  *********************************************************/
-#include "PWM.h"
 
 void
 initialiseMainPWM (void)
@@ -51,8 +69,6 @@ void initialiseTailPWM()
        // Disable the output.  Repeat this call with 'true' to turn O/P on.
        PWMOutputState(TAIL_PWM_BASE, TAIL_PWM_OUTBIT, true);
 
-       // Set the initial PWM parameters
-       setTailPWM();
 
 }
 
@@ -78,7 +94,7 @@ setMainPWM (uint32_t ui32Freq, uint32_t ui32Duty)
 //***********************************************************
 // Function to set the frequency, duty cycle of the Tail PWM
 //***********************************************************
-void setTailPWM ()
+void setTailPWM (uint32_t PWMduty)
 {
     // Calculate the PWM period corresponding to the frequency
         uint32_t ui32Period =
@@ -87,9 +103,61 @@ void setTailPWM ()
         PWMGenPeriodSet(TAIL_PWM_BASE, TAIL_PWM_GEN, ui32Period);
 
         PWMPulseWidthSet(TAIL_PWM_BASE, TAIL_PWM_OUTNUM,
-            ui32Period * TAIL_PWM_FIXED_DUTY / 100);
+            ui32Period * PWMduty / 100);
 }
 
 
+
+// *******************************************************
+// Main Rotor PID control for Altitude
+// *******************************************************
+/*void MainRotorControlUpdate (int32_t TargetAltitudePercentage, int32_t currentAltitudePercentage, float deltaT)
+{
+    int32_t errorMain = TargetAltitudePercentage - CurrentAltitudePercentage; // Error calculation for altitude
+
+    //PID controller calculated
+
+    PMain = KP_MAIN * errorMain; // Proportional control
+    dIMain = KI_MAIN * errorMain * deltaT; // constantly updating part of integral control
+    DMain = KD_MAIN * (errorMain - prevErrorMain)/deltaT; // derivative control
+
+    controlMain = PMain + (IMain + dIMain) + DMain;
+
+    prevErrorMain = errorMain; // updates previous error for altitude
+
+// Place limits on the output
+
+    if (controlMain > MAX_OUTPUT_MAIN)
+        controlMain = MAX_OUTPUT_MAIN;
+    else if (controlMain < MIN_OUTPUT_MAIN)
+        controlMain = MIN_OUTPUT_MAIN;
+    else
+        IMain += dIMain; // accumulates error signal from main rotor only if controller output is within the specified limits
+
+}*/
+// *******************************************************
+// Tail Rotor PID control for Yaw
+// *******************************************************
+
+/*void TailRotorControlUpdate (int32_t TargetYawInDegrees, int32_t CurrentYawInDegreers, float deltaT)
+{
+
+    PTail = KpTail * errorTail;
+    dITail = KiTail * errorTail * TTail;
+    DTail = (KdTail/TTail) * (errorTail - prevErrorTail);
+
+    controlTail = PTail + (ITail + dITail) + DTail;
+
+    prevErrorTail = errorTail; // updates previous error for yaw
+
+    // Place limits on the output
+
+    if (controlTail > MAX_OUTPUT_TAIL)
+        controlTail = MAX_OUTPUT_TAIL;
+    else if (controlTail < MIN_OUTPUT_TAIL)
+        controlTail = MIN_OUTPUT_TAIL;
+    else
+        ITail += dITail; // accumulates error signal from tail rotor only if controller output is within the specified limits
+}*/
 
 

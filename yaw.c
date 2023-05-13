@@ -7,11 +7,15 @@
 
 #include "yaw.h"
 
+
+volatile bool isYawCalibrated;
+
 // Setting up Interrupt for yaw quadrature encoder
 void initYaw (void)
 {
 
     SysCtlPeripheralEnable (YAW_PERIPH);
+    SysCtlPeripheralEnable(YAW_REF_PERIPH);
 
     // Initialisation of the interrupt for quadrature encoding on channel A & B
     GPIOPadConfigSet (YAW_PORT_BASE, YAW_A_PIN | YAW_B_PIN, GPIO_STRENGTH_2MA,
@@ -21,6 +25,29 @@ void initYaw (void)
     GPIOIntEnable(YAW_PORT_BASE, YAW_A_PIN | YAW_B_PIN);
     IntEnable(INT_GPIOB);
 
+
+    //Initialise the reference yaw interrupt
+
+    GPIOPadConfigSet (YAW_REF_PORT_BASE, YAW_REF_PIN, GPIO_STRENGTH_2MA,
+         GPIO_PIN_TYPE_STD_WPU);
+      GPIOIntRegister(YAW_REF_PORT_BASE, refYawIntHandler);
+      GPIOIntTypeSet(YAW_REF_PORT_BASE, YAW_REF_PIN, GPIO_RISING_EDGE);
+      GPIOIntEnable(YAW_REF_PORT_BASE, YAW_REF_PIN);
+      IntEnable(INT_GPIOB);
+
+}
+
+// Function to Disable Reference Yaw Interrupt once calibrated
+void disableRefYawInt(bool disable)
+{
+    if (disable)
+    {
+        GPIOIntDisable(YAW_REF_PORT_BASE, YAW_REF_PIN);
+    }
+    else
+    {
+        GPIOIntEnable(YAW_REF_PORT_BASE, YAW_REF_PIN);
+    }
 }
 
 // Finite State Machine to determine current state of yaw
@@ -59,6 +86,14 @@ void YawIntHandler(void)
 
     yaw = changeYaw();
 
+}
+
+void refYawIntHandler(void)
+{
+    GPIOPinRead(YAW_REF_PORT_BASE, YAW_REF_PIN);
+    yaw = 0;
+    isYawCalibrated = true;
+    disableRefYawInt(true); // disable ref yaw interrupt
 }
 
 

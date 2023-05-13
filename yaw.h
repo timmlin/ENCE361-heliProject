@@ -34,6 +34,10 @@
 #define YAW_REF_PIN GPIO_PIN_4
 #define YAW_REF_NORMAL  false
 
+//flag to be set to true when ref yaw is found
+extern volatile bool isYawCalibrated;
+
+
 #define TEETH_NUM 112 // number of teeth on the disc
 #define STATE_NUM 4 // number of states per tooth
 #define DEGREES_IN_REV 360 // number of degrees in one revolution, scaled by a factor of 10
@@ -44,8 +48,7 @@ static int8_t previous_state = 0;
 
 static int32_t yaw = 0;
 static int32_t currentYaw = 0;
-//static uint32_t yawRemainder = 0;
-//static uint32_t ScaledYawInDegrees = 0;
+
 
 
 // Setting up Interrupt for yaw quadrature encoder
@@ -54,6 +57,13 @@ void initYaw (void);
 
 // Finite State Machine to determine current state
 void YawIntHandler(void);
+
+// reference yaw interrupt handler
+void refYawIntHandler(void);
+
+
+// Disables or enables the reference yaw interrupt
+void disableRefYawInt(bool disable);
 
 
 int32_t changeYaw();

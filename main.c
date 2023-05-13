@@ -4,6 +4,7 @@
  *  group 55
  */
 
+#include <ControllerPWM.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -12,9 +13,8 @@
 #include "Display.h"
 #include "altitude.h"
 #include "yaw.h"
-#include "PWM.h"
+#include "ControllerPWM.h"
 #include "buttons.h"
-#include "Controller.h"
 
 //*****************************************************************************
 // Constants
@@ -25,6 +25,7 @@
 #define SAMPLE_RATE_HZ 100
 #define ADC_RANGE 1241
 
+#define FIND_REF_YAW_DUTY_CYCLE 10
 
 
 
@@ -131,14 +132,18 @@ main(void)
        };
     enum States currentState  = LANDED;
     enum States previousState = LANDED;
+    int stateNum = 0;
 
     bool stateChange = false;
+    bool isYawCalibrated = false;
     int32_t landedADCValue = 0;
-    int32_t curADCValue = 0;
-    int32_t altitudePercentage = 0;
-    int32_t targetAltitude = 0;
 
-    int32_t yawInDregrees = 0;
+    int32_t curADCValue = 0;
+    int32_t currentAltitudePercentage = 0;
+    int32_t targetAltitudePercentage = 0;
+
+    int32_t targetYawInDegrees = 0;
+    int32_t currentYawInDegrees = 0;
     uint32_t yawRemainder = 0;
 
     // used to calculate deltaT for the timer intergral
@@ -148,14 +153,18 @@ main(void)
     landedADCValue = CalculateMeanADC();
 
 
-    //*****************************************************************************
-    // Finite State Machine
-    //*****************************************************************************
     while (true)
     {
+
         loopCounter++;
 
 
+
+
+
+    //*****************************************************************************
+    // Finite State Machine
+    //*****************************************************************************
         if (currentState != previousState)
         {
             stateChange = true;
@@ -166,11 +175,42 @@ main(void)
         {
         case LANDED:
 
+            if (SWITCH1_FLAG)
+            {
+                SWITCH1_FLAG = false;
 
-            //
+
+                currentState = TAKEOFF;
+                stateNum = 1;
+            }
+
+
             break;
+
         case TAKEOFF:
-            //
+
+            if(stateChange)
+            {   // enables and disables for TAKEOFF state
+                stateChange = false;
+                isYawCalibrated = false;
+
+                //go up here to TransitionHoverAltitude = 5% ??
+                //PID control used here but could possibly be disabled if it's a problem
+                targetAltitudePercentage = 5;
+
+            }
+
+            if(!isYawCalibrated)
+            {
+                disableRefYawInt(false); // enable ref yaw interrupt
+                setTailPWM(50);
+            }
+            else
+            {
+               currentState = FLYING;
+               stateNum = 2;
+               stateChange = true;
+            }
             break;
 
         case FLYING:
@@ -211,17 +251,21 @@ main(void)
             {
                 RIGHT_BUTTON_FLAG = false;
 
-                targetYawInDegrees += 15
-
             }
 
         break;
 
         case LANDING:
-            //
+            // something here about Is landing position found (same actually as in calibration stage)
+            // set target yaw to 0
+
+            //enable ref yaw interrupt
+            disableRefYawInt(false);
+            setTailPWM(FIND_REF_YAW_DUTY_CYCLE);
+
+
             break;
         }
-
 
 
 
@@ -241,7 +285,7 @@ main(void)
         //*****************************************************************************
 
         // Converts the yaw value to degrees rounded to a whole number
-        yawInDregrees = YawToDegrees();
+        currentYawInDegrees = YawToDegrees();
 
 
         // Gets the decimal point for the yaw in degrees
@@ -251,27 +295,27 @@ main(void)
         //*****************************************************************************
         //PID Control
         //*****************************************************************************
-        if (currentAltitudePercentage != targetAltitudePercentage).3
+      /* if (currentAltitudePercentage != targetAltitudePercentage);
 
         {
-            MainRotorControlUpdate(int32_t TargetAltitude, int32_t altitudePercentage, 0.1);
+            MainRotorControlUpdate(targetAltitudePercentage, currentAltitudePercentage, 0.1);
 
             loopCounter = 0;
         }
 
         if (currentYaw != targetYaw)
         {
-            TailRotorControlUpdate (int32_t TargetYaw, int32_t CurrentYawInDegreers, 0.1);
+            TailRotorControlUpdate ( targetYawInDegrees,  currentYawInDegrees,  0.1);
+
 
             loopCounter = 0;
-        }
-
+        }*/
 
         //*****************************************************************************
         //display
         //*****************************************************************************
 
-        displayOLED(altitudePercentage, yawInDregrees, yawRemainder);
+        displayOLED(currentAltitudePercentage, currentYawInDegrees, yawRemainder, stateNum);
 
 
 

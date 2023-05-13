@@ -33,6 +33,7 @@ volatile bool UP_BUTTON_FLAG;
 volatile bool DOWN_BUTTON_FLAG;
 volatile bool LEFT_BUTTON_FLAG;
 volatile bool RIGHT_BUTTON_FLAG;
+volatile bool SWITCH1_FLAG;
 
 // *******************************************************
 // initButtons: Initialise the variables associated with the set of buttons
@@ -99,7 +100,11 @@ initButtons (void)
     SysCtlPeripheralEnable (SWITCH1_PERIPH);
     GPIOPinTypeGPIOInput (SWITCH1_PORT_BASE, SWITCH1_PIN);
     GPIOPadConfigSet (SWITCH1_PORT_BASE, SWITCH1_PIN, GPIO_STRENGTH_2MA,
-       GPIO_PIN_TYPE_STD_WPD);
+       GPIO_PIN_TYPE_STD_WPU);
+
+    GPIOIntRegister(SWITCH1_PORT_BASE, switchIntHandler);
+   GPIOIntTypeSet(SWITCH1_PORT_BASE, SWITCH1_PIN, GPIO_RISING_EDGE);
+   GPIOIntEnable(SWITCH1_PORT_BASE, SWITCH1_PIN);
     but_normal[SWITCH1] = SWITCH1_NORMAL;
 
 
@@ -200,26 +205,18 @@ void buttonsIntHandler()
 
         GPIOIntClear(RIGHT_BUT_PORT_BASE,  RIGHT_BUT_PIN);
     }
+}
 
 
+void switchIntHandler()
+{
+    SWITCH1_FLAG = true;
 
-
-
-
-
-
-
-
-
-
-
-
-
+    GPIOIntClear(SWITCH1_PORT_BASE, SWITCH1_PIN);
 
 
 
 }
-
 
 
 

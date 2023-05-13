@@ -1,35 +1,27 @@
 /*
- *  Tim Lindbom (tli89)
- *  & Steph Post (spo88)
- *  group 55
+ * Controller.h
+ *
+ *  Created on: 11/05/2023
+ *      Author: spo88
  */
 
-#ifndef PWM_H_
-#define PWM_H_
-
+#ifndef CONTROLLERPWM_H_
+#define CONTROLLERPWM_H_
 
 #include <stdint.h>
 #include <stdbool.h>
+
 #include "inc/hw_memmap.h"
 #include "inc/hw_types.h"
-#include "inc/hw_ints.h"
-#include "driverlib/adc.h"
-#include "driverlib/pin_map.h" //Needed for pin configure
-#include "driverlib/debug.h"
-#include "driverlib/pwm.h"
-#include "driverlib/gpio.h"
-#include "driverlib/systick.h"
 #include "driverlib/sysctl.h"
-#include "driverlib/interrupt.h"
+#include "driverlib/systick.h"
 #include "utils/ustdlib.h"
+#include "driverlib/gpio.h"
+#include "driverlib/pin_map.h" //Needed for pin configure
+#include "driverlib/pwm.h"
 #include "stdlib.h"
 
 
-
-
-/**********************************************************
- * Constants
- **********************************************************/
 // Systick configuration
 #define SYSTICK_RATE_HZ    100
 
@@ -44,6 +36,9 @@
 #define PWM_DIVIDER_CODE   SYSCTL_PWMDIV_4
 #define PWM_DIVIDER        4
 
+/**********************************************************
+ * PWM Constants
+ **********************************************************/
 
 
 //  PWM Hardware Details M0PWM7
@@ -62,7 +57,7 @@
 
 //--Tail Rotor PWM: PF1
 #define TAIL_PWM_START_RATE_HZ   200
-#define TAIL_PWM_FIXED_DUTY      10
+//#define TAIL_PWM_FIXED_DUTY      10
 
 #define TAIL_PWM_BASE            PWM1_BASE
 #define TAIL_PWM_GEN             PWM_GEN_2
@@ -74,6 +69,18 @@
 #define TAIL_PWM_GPIO_CONFIG     GPIO_PF1_M1PWM5
 #define TAIL_PWM_GPIO_PIN        GPIO_PIN_1
 
+/**********************************************************
+ * PID Constants
+ **********************************************************/
+
+
+#define KP_MAIN 5
+#define KI_MAIN 5
+#define KD_MAIN 5
+
+#define KP_TAIL 5
+#define KI_TAIL 5
+#define KD_TAIL 5
 
 void initialiseMainPWM (void);
 
@@ -81,9 +88,13 @@ void initialiseTailPWM(void);
 
 void setMainPWM (uint32_t u32Freq, uint32_t u32Duty);
 
-void setTailPWM ();
+void setTailPWM (uint32_t value);
+
+void MainRotorControlUpdate (int32_t TargetAltitude, int32_t altitudePercentage, float deltaT);
+
+void TailRotorControlUpdate (int32_t TargetYaw, int32_t CurrentYawInDegreers, float deltaT);
 
 
 
 
-#endif /* PWM_H_ */
+#endif /* CONTROLLERPWM_H_ */

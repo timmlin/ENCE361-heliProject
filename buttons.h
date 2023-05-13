@@ -55,13 +55,15 @@ enum butStates {RELEASED = 0, PUSHED, NO_CHANGE};
 #define SWITCH1_PERIPH  SYSCTL_PERIPH_GPIOA
 #define SWITCH1_PORT_BASE  GPIO_PORTA_BASE
 #define SWITCH1_PIN  GPIO_PIN_7
-#define SWITCH1_NORMAL  false
+#define SWITCH1_NORMAL  true;
 
 //interrupt binary flags
 extern volatile bool  UP_BUTTON_FLAG;
 extern volatile bool DOWN_BUTTON_FLAG;
 extern volatile bool LEFT_BUTTON_FLAG;
 extern volatile bool RIGHT_BUTTON_FLAG;
+extern volatile bool SWITCH1_FLAG;
+
 
 #define NUM_BUT_POLLS 3
 // Debounce algorithm: A state machine is associated with each button.
@@ -81,6 +83,7 @@ initButtons (void);
 //interupt handler for buttons
 void buttonsIntHandler(void);
 
+void switchIntHandler(void);
 // *******************************************************
 // updateButtons: Function designed to be called regularly. It polls all
 // buttons once and updates variables associated with the buttons if
@@ -94,8 +97,8 @@ updateButtons (void);
 // (PUSHED or RELEASED) has changed since the last call, otherwise returns
 // NO_CHANGE.  The argument butName should be one of constants in the
 // enumeration butStates, excluding 'NUM_BUTS'. Safe under interrupt.
-uint8_t
-checkButton (uint8_t butName);
+
+uint8_t checkButton (uint8_t butName);
 
 #endif /*BUTTONS_H_*/
 
