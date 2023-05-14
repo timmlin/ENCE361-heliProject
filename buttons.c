@@ -29,11 +29,11 @@ static uint8_t but_count[NUM_BUTS];
 static bool but_flag[NUM_BUTS];
 static bool but_normal[NUM_BUTS];   // Corresponds to the electrical state
 
-volatile bool UP_BUTTON_FLAG;
-volatile bool DOWN_BUTTON_FLAG;
-volatile bool LEFT_BUTTON_FLAG;
-volatile bool RIGHT_BUTTON_FLAG;
-volatile bool SWITCH1_FLAG;
+volatile bool UP_BUTTON_FLAG = false;
+volatile bool DOWN_BUTTON_FLAG = false;
+volatile bool LEFT_BUTTON_FLAG = false;
+volatile bool RIGHT_BUTTON_FLAG = false;
+volatile bool SWITCH1_FLAG = false;
 
 // *******************************************************
 // initButtons: Initialise the variables associated with the set of buttons

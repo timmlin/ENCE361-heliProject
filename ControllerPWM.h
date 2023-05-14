@@ -26,7 +26,7 @@
 #define SYSTICK_RATE_HZ    100
 
 // PWM configuration
-//#define PWM_START_RATE_HZ  250
+#define PWM_RATE_HZ  250
 //#define PWM_RATE_STEP_HZ   50
 //#define PWM_RATE_MIN_HZ    50
 //#define PWM_RATE_MAX_HZ    400
@@ -42,6 +42,8 @@
 
 
 //  PWM Hardware Details M0PWM7
+
+#define PWM_DIVISOR 1000
 //  ---Main Rotor PWM: PC5, J4-05
 #define PWM_MAIN_BASE        PWM0_BASE
 #define PWM_MAIN_GEN         PWM_GEN_3
@@ -74,25 +76,25 @@
  **********************************************************/
 
 
-#define KP_MAIN 5
-#define KI_MAIN 5
-#define KD_MAIN 5
+#define MAIN_KP 600
+#define MAIN_KI 400
+#define MAIN_KD 0
 
-#define KP_TAIL 5
-#define KI_TAIL 5
-#define KD_TAIL 5
+#define TAIL_KP 5
+#define TAIL_KI 5
+#define TAIL_KD 5
 
 void initialiseMainPWM (void);
 
 void initialiseTailPWM(void);
 
-void setMainPWM (uint32_t MainPWMFreq, uint32_t MainPWMDuty);
+void setMainPWM (uint32_t MainPWMDuty);
 
-void setTailPWM (uint32_t TailPWMFreq, uint32_t TailPWMDuty);
+void setTailPWM (uint32_t TailPWMDuty);
 
-void MainRotorControlUpdate (int32_t TargetAltitude, int32_t altitudePercentage, float deltaT);
+int32_t mainRotorControlUpdate (int32_t TargetAltitude, int32_t altitudePercentage, float deltaT);
 
-void TailRotorControlUpdate (int32_t TargetYaw, int32_t CurrentYawInDegreers, float deltaT);
+int32_t tailRotorControlUpdate (int32_t TargetYaw, int32_t CurrentYawInDegreers, float deltaT);
 
 
 

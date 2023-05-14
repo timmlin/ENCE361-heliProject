@@ -18,7 +18,7 @@
 #include "utils/ustdlib.h"
 #include "OrbitOLED/OrbitOLEDInterface.h"
 #include "stdlib.h"
-#include "buttons4.h"
+#include "buttons.h"
 #include "circBufT.h"
 #include "Display.h"
 #include "altitude.h"
@@ -113,7 +113,7 @@ main(void)
     initClock ();
     initADC ();
     initButtons ();
-    initDisplay ();
+    OLEDInitialise();
     initSysTick();
     initYaw();
     IntMasterEnable(); // Enable interrupts to the processor.
@@ -189,12 +189,12 @@ main(void)
         {
             case(0):
                 //Displays the altitude percentage
-                displayAltitudeYaw(altitudePercentage, yawInDregrees, yawRemainder);
+                displayOLED(altitudePercentage, yawInDregrees, yawRemainder, 1);
                 break;
 
             case(1):
                 //Displays the rounded mean value of the buffer
-                displayMeanVal (curADCValue, g_ulSampCnt);
+                clearDisplay();
                 break;
 
             case(2):

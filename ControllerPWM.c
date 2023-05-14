@@ -7,19 +7,20 @@
 #include "ControllerPWM.h"
 
 
-#define MAX_OUTPUT_MAIN
-#define MIN_OUTPUT_MAIN
-#define MAX_OUTPUT_TAIL
-#define MIN_OUTPUT_TAIL
+#define MAX_OUTPUT 98
+#define MIN_OUTPUT 2
 
 
 // Initialise Error signal
 
-int32_t errorMain = 0;
-int32_t prevErrorMain = 0;
+int32_t mainError = 0;
+int32_t mainPrevError = 0;
 
-int32_t errorTail = 0;
-int32_t prevErrorTail = 0;
+int32_t mainI = 0;
+int32_t tailI = 0;
+
+int32_t tailError = 0;
+int32_t tailPrevError = 0;
 
 int32_t TargetAltitudePercentage = 0;
 int32_t TargetYawInDegrees = 0;
@@ -74,16 +75,16 @@ void initialiseTailPWM()
 //***********************************************************
 // Function to set the frequency, duty cycle of the Main PWM
 //***********************************************************
-void setMainPWM (uint32_t MainPWMFreq, uint32_t MainPWMDuty)
+void setMainPWM (uint32_t mainPWMDuty)
 {
     // Calculate the PWM period corresponding to the frequency
-    uint32_t MainPWMPeriod =
-        SysCtlClockGet() / PWM_DIVIDER / MainPWMFreq;
+    uint32_t mainPWMPeriod =
+        SysCtlClockGet() / PWM_DIVIDER / PWM_RATE_HZ;
 
-    PWMGenPeriodSet(PWM_MAIN_BASE, PWM_MAIN_GEN, MainPWMPeriod);
+    PWMGenPeriodSet(PWM_MAIN_BASE, PWM_MAIN_GEN, mainPWMPeriod);
 
     PWMPulseWidthSet(PWM_MAIN_BASE, PWM_MAIN_OUTNUM,
-                     MainPWMPeriod * MainPWMDuty / 100);
+                     mainPWMPeriod * mainPWMDuty / 100);
 }
 
 
@@ -91,11 +92,11 @@ void setMainPWM (uint32_t MainPWMFreq, uint32_t MainPWMDuty)
 //***********************************************************
 // Function to set the frequency, duty cycle of the Tail PWM
 //***********************************************************
-void setTailPWM (uint32_t TailPWMFreq, uint32_t TailPWMduty)
+void setTailPWM (uint32_t TailPWMduty)
 {
     // Calculate the PWM period corresponding to the frequency
         uint32_t TailPWMPeriod =
-            SysCtlClockGet() / PWM_DIVIDER / TailPWMFreq;
+            SysCtlClockGet() / PWM_DIVIDER / PWM_RATE_HZ;
 
         PWMGenPeriodSet(TAIL_PWM_BASE, TAIL_PWM_GEN, TailPWMPeriod);
 
@@ -108,53 +109,71 @@ void setTailPWM (uint32_t TailPWMFreq, uint32_t TailPWMduty)
 // *******************************************************
 // Main Rotor PID control for Altitude
 // *******************************************************
-/*void MainRotorControlUpdate (int32_t TargetAltitudePercentage, int32_t currentAltitudePercentage, float deltaT)
+int32_t mainRotorControlUpdate (int32_t targetAltitudePercentage, int32_t currentAltitudePercentage, float deltaT)
 {
-    int32_t errorMain = TargetAltitudePercentage - CurrentAltitudePercentage; // Error calculation for altitude
+    int32_t mainError = targetAltitudePercentage - currentAltitudePercentage; // Error calculation for altitude
 
     //PID controller calculated
+    int32_t mainP = MAIN_KP * mainError; // Proportional control
+    int32_t mainDI = MAIN_KI * mainError * deltaT; // constantly updating part of integral control
+    int32_t mainD = MAIN_KD * (mainError - mainPrevError)/deltaT; // derivative control
 
-    PMain = KP_MAIN * errorMain; // Proportional control
-    dIMain = KI_MAIN * errorMain * deltaT; // constantly updating part of integral control
-    DMain = KD_MAIN * (errorMain - prevErrorMain)/deltaT; // derivative control
+    int32_t mainControl = mainP + (mainI + mainDI) + mainD;
 
-    controlMain = PMain + (IMain + dIMain) + DMain;
+    mainPrevError = mainError; // updates previous error for altitude
 
-    prevErrorMain = errorMain; // updates previous error for altitude
+    // Place limits on the output
 
-// Place limits on the output
-
-    if (controlMain > MAX_OUTPUT_MAIN)
-        controlMain = MAX_OUTPUT_MAIN;
-    else if (controlMain < MIN_OUTPUT_MAIN)
-        controlMain = MIN_OUTPUT_MAIN;
+    if (mainControl > MAX_OUTPUT)
+    {
+        mainControl = MAX_OUTPUT;
+    }
+    else if (mainControl < MIN_OUTPUT)
+    {
+        mainControl = MIN_OUTPUT;
+    }
     else
-        IMain += dIMain; // accumulates error signal from main rotor only if controller output is within the specified limits
+    {
+        mainI += mainDI; // accumulates error signal from main rotor only if controller output is within the specified limits
+    }
 
-}*/
+    return mainControl;
+}
+
 // *******************************************************
 // Tail Rotor PID control for Yaw
 // *******************************************************
 
-/*void TailRotorControlUpdate (int32_t TargetYawInDegrees, int32_t CurrentYawInDegreers, float deltaT)
+
+int32_t tailRotorControlUpdate (int32_t TargetYawInDegrees, int32_t CurrentYawInDegreers, float deltaT)
 {
+    int32_t tailError = TargetYawInDegrees - CurrentYawInDegreers; // Error calculation for altitude
 
-    PTail = KpTail * errorTail;
-    dITail = KiTail * errorTail * TTail;
-    DTail = (KdTail/TTail) * (errorTail - prevErrorTail);
+    //PID controller calculated
+    int32_t tailP = MAIN_KP * tailError; // Proportional control
+    int32_t tailDI = MAIN_KI * tailError * deltaT; // constantly updating part of integral control
+    int32_t tailD = MAIN_KD * (tailError - tailPrevError)/deltaT; // derivative control
 
-    controlTail = PTail + (ITail + dITail) + DTail;
+    int32_t tailControl = (tailP + (tailI + tailDI) + tailD)/PWM_DIVISOR;
 
-    prevErrorTail = errorTail; // updates previous error for yaw
+    tailPrevError = tailError; // updates previous error for altitude
 
     // Place limits on the output
 
-    if (controlTail > MAX_OUTPUT_TAIL)
-        controlTail = MAX_OUTPUT_TAIL;
-    else if (controlTail < MIN_OUTPUT_TAIL)
-        controlTail = MIN_OUTPUT_TAIL;
+    if (tailControl > MAX_OUTPUT)
+    {
+        tailControl = MAX_OUTPUT;
+    }
+    else if (tailControl < MIN_OUTPUT)
+    {
+        tailControl = MIN_OUTPUT;
+    }
     else
-        ITail += dITail; // accumulates error signal from tail rotor only if controller output is within the specified limits
-}*/
+    {
+        tailI += tailDI; // accumulates error signal from tail rotor only if controller output is within the specified limits
+    }
+
+    return tailControl;
+}
 
 

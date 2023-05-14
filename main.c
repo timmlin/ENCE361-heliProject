@@ -145,8 +145,10 @@ main(void)
     int32_t currentYawInDegrees = 0;
     uint32_t yawRemainder = 0;
 
-    // used to calculate deltaT for the timer integral
-    uint32_t loopCounter = 0;
+    int32_t mainDuty = 0;
+    int32_t tailDuty = 0;
+
+
 
     //takes the initial sample mean and uses that as the 0%/ landed value
     landedADCValue = CalculateMeanADC();
@@ -154,12 +156,6 @@ main(void)
 
     while (true)
     {
-
-        loopCounter++;
-
-
-
-
 
     //*****************************************************************************
     // Finite State Machine
@@ -201,10 +197,11 @@ main(void)
 
             if(!isYawCalibrated)
             {
+                targetAltitudePercentage = 10;
                 disableRefYawInt(false); // enable ref yaw interrupt
 
-                setMainPWM (250, 50);
-                setTailPWM(250, 80);
+                setMainPWM(mainDuty);
+                setTailPWM(43);
             }
             else
             {
@@ -222,38 +219,60 @@ main(void)
             if(UP_BUTTON_FLAG)
             {
                 UP_BUTTON_FLAG = false;
-                /*
-                    do up button stuff
 
-               */
+                if (targetAltitudePercentage >= 90)
+                {
+                    targetAltitudePercentage = 100;
+                }
+                else
+                {
+                    targetAltitudePercentage += 10;
+                }
 
             }
+
+
 
             if (DOWN_BUTTON_FLAG)
             {
                 DOWN_BUTTON_FLAG = false;
-                /*
-                    do down button stuff
-
-               */
+                if (targetAltitudePercentage <= 10)
+                {
+                    currentState = LANDING;
+                    stateChange = true;
+                }
+                else
+                {
+                    targetAltitudePercentage -= 10;
+                }
             }
+
 
 
             if (LEFT_BUTTON_FLAG)
             {
                 LEFT_BUTTON_FLAG = false;
-                /*
-                    do left button stuff
 
-               */
+                targetYawInDegrees -= 15;
 
-
+                if (targetYawInDegrees < -180)
+                {
+                    targetYawInDegrees  += 360;
+                }
             }
+
+
 
             if (RIGHT_BUTTON_FLAG)
             {
                 RIGHT_BUTTON_FLAG = false;
 
+                targetYawInDegrees += 15;
+
+                if (targetYawInDegrees > 180)
+                {
+                    targetYawInDegrees -= 360;
+                }
             }
 
         break;
@@ -298,21 +317,19 @@ main(void)
         //*****************************************************************************
         //PID Control
         //*****************************************************************************
-      /* if (currentAltitudePercentage != targetAltitudePercentage);
+        if (currentAltitudePercentage != targetAltitudePercentage);
 
         {
-            MainRotorControlUpdate(targetAltitudePercentage, currentAltitudePercentage, 0.1);
+            mainDuty = mainRotorControlUpdate(targetAltitudePercentage, currentAltitudePercentage, 0.1);
 
-            loopCounter = 0;
         }
 
-        if (currentYaw != targetYaw)
+        if (currentYawInDegrees != targetYawInDegrees)
         {
-            TailRotorControlUpdate ( targetYawInDegrees,  currentYawInDegrees,  0.1);
+            tailDuty = tailRotorControlUpdate ( targetYawInDegrees,  currentYawInDegrees,  0.1);
 
 
-            loopCounter = 0;
-        }*/
+        }
 
         //*****************************************************************************
         //display
