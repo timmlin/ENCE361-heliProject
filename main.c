@@ -27,6 +27,8 @@
 
 #define FIND_REF_YAW_DUTY_CYCLE 10
 
+#define HOVER_ALT_PERCENTAGE 10
+
 
 
 //*****************************************************************************
@@ -132,7 +134,7 @@ main(void)
        };
     enum States currentState  = LANDED;
     enum States previousState = LANDED;
-    int stateNum = 0;
+    uint8_t stateNum = 0;
 
     bool stateChange = false;
     int32_t landedADCValue = 0;
@@ -197,11 +199,11 @@ main(void)
 
             if(!isYawCalibrated)
             {
-                targetAltitudePercentage = 10;
+                targetAltitudePercentage = HOVER_ALT_PERCENTAGE;
                 disableRefYawInt(false); // enable ref yaw interrupt
 
                 setMainPWM(mainDuty);
-                setTailPWM(43);
+                setTailPWM(75);
             }
             else
             {
@@ -209,7 +211,9 @@ main(void)
                disableRefYawInt(true); // disable ref yaw interrupt
                currentState = FLYING;
                stateNum = 2;
+               targetYawInDegrees = 0;
                stateChange = true;
+               setTailPWM(tailDuty);
             }
             break;
 
@@ -275,8 +279,11 @@ main(void)
                 }
             }
 
-        break;
+            setMainPWM(mainDuty);
+            setTailPWM(tailDuty);
 
+
+        break;
         case LANDING:
             // something here about Is landing position found (same actually as in calibration stage)
             // set target yaw to 0
@@ -317,25 +324,16 @@ main(void)
         //*****************************************************************************
         //PID Control
         //*****************************************************************************
-        if (currentAltitudePercentage != targetAltitudePercentage);
 
-        {
-            mainDuty = mainRotorControlUpdate(targetAltitudePercentage, currentAltitudePercentage, 0.1);
+        mainDuty = mainRotorControlUpdate(targetAltitudePercentage, currentAltitudePercentage, 0.1);
 
-        }
-
-        if (currentYawInDegrees != targetYawInDegrees)
-        {
-            tailDuty = tailRotorControlUpdate ( targetYawInDegrees,  currentYawInDegrees,  0.1);
-
-
-        }
+        tailDuty = tailRotorControlUpdate (targetYawInDegrees, currentYawInDegrees,  0.1);
 
         //*****************************************************************************
         //display
         //*****************************************************************************
 
-        displayOLED(currentAltitudePercentage, currentYawInDegrees, yawRemainder, stateNum);
+        displayOLED(currentAltitudePercentage, currentYawInDegrees, yawRemainder, stateNum, mainDuty, tailDuty );
 
 
 

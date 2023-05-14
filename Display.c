@@ -27,7 +27,13 @@ void clearDisplay()
 
 
 // display the altitude percentage, yaw, and main/tail PWM onto the OLED display
-void displayOLED(int32_t altitudePercentage, int32_t yawInDregrees, uint32_t yawRemainder, int state)
+
+void displayOLED(int32_t altitudePercentage,
+                 int32_t yawInDregrees,
+                 uint32_t yawRemainder,
+                 uint8_t state,
+                 int32_t mainPWMDuty,
+                 int32_t tailPWMDuty)
 {
     char string[MAX_DISPLAY_CHAR];  // 16 characters across the display
 
@@ -40,9 +46,10 @@ void displayOLED(int32_t altitudePercentage, int32_t yawInDregrees, uint32_t yaw
    // Update line on display.
    OLEDStringDraw (string, 0, 1);
 
+
    usnprintf (string, sizeof(string), "%d", state);
      // Update line on display.
-     OLEDStringDraw (string, 0, 2);
+     OLEDStringDraw (string, 0, 3);
 
 
 

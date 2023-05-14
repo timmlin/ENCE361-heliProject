@@ -43,8 +43,8 @@
 
 //  PWM Hardware Details M0PWM7
 
-#define PWM_DIVISOR 1000
 //  ---Main Rotor PWM: PC5, J4-05
+
 #define PWM_MAIN_BASE        PWM0_BASE
 #define PWM_MAIN_GEN         PWM_GEN_3
 #define PWM_MAIN_OUTNUM      PWM_OUT_7
@@ -59,7 +59,6 @@
 
 //--Tail Rotor PWM: PF1
 #define TAIL_PWM_START_RATE_HZ   200
-//#define TAIL_PWM_FIXED_DUTY      10
 
 #define TAIL_PWM_BASE            PWM1_BASE
 #define TAIL_PWM_GEN             PWM_GEN_2
@@ -74,15 +73,15 @@
 /**********************************************************
  * PID Constants
  **********************************************************/
+#define PWM_DIVISOR 100
 
+#define MAIN_KP 450
+#define MAIN_KI 20
+#define MAIN_KD 10
 
-#define MAIN_KP 600
-#define MAIN_KI 400
-#define MAIN_KD 0
-
-#define TAIL_KP 5
-#define TAIL_KI 5
-#define TAIL_KD 5
+#define TAIL_KP 43
+#define TAIL_KI 25
+#define TAIL_KD 0
 
 void initialiseMainPWM (void);
 

@@ -15,15 +15,13 @@
 
 int32_t mainError = 0;
 int32_t mainPrevError = 0;
-
+int32_t mainControl = 0;
 int32_t mainI = 0;
-int32_t tailI = 0;
 
+int32_t tailI = 0;
 int32_t tailError = 0;
 int32_t tailPrevError = 0;
-
-int32_t TargetAltitudePercentage = 0;
-int32_t TargetYawInDegrees = 0;
+int32_t tailControl = 0;
 
 /*********************************************************
  * initialiseMainPWM
@@ -111,14 +109,14 @@ void setTailPWM (uint32_t TailPWMduty)
 // *******************************************************
 int32_t mainRotorControlUpdate (int32_t targetAltitudePercentage, int32_t currentAltitudePercentage, float deltaT)
 {
-    int32_t mainError = targetAltitudePercentage - currentAltitudePercentage; // Error calculation for altitude
+    mainError = targetAltitudePercentage - currentAltitudePercentage; // Error calculation for altitude
 
     //PID controller calculated
     int32_t mainP = MAIN_KP * mainError; // Proportional control
     int32_t mainDI = MAIN_KI * mainError * deltaT; // constantly updating part of integral control
     int32_t mainD = MAIN_KD * (mainError - mainPrevError)/deltaT; // derivative control
 
-    int32_t mainControl = mainP + (mainI + mainDI) + mainD;
+    mainControl = (mainP + (mainI + mainDI) + mainD)/PWM_DIVISOR;
 
     mainPrevError = mainError; // updates previous error for altitude
 
@@ -129,6 +127,7 @@ int32_t mainRotorControlUpdate (int32_t targetAltitudePercentage, int32_t curren
         mainControl = MAX_OUTPUT;
     }
     else if (mainControl < MIN_OUTPUT)
+
     {
         mainControl = MIN_OUTPUT;
     }
@@ -147,14 +146,14 @@ int32_t mainRotorControlUpdate (int32_t targetAltitudePercentage, int32_t curren
 
 int32_t tailRotorControlUpdate (int32_t TargetYawInDegrees, int32_t CurrentYawInDegreers, float deltaT)
 {
-    int32_t tailError = TargetYawInDegrees - CurrentYawInDegreers; // Error calculation for altitude
+    tailError = TargetYawInDegrees - CurrentYawInDegreers; // Error calculation for yaw
 
     //PID controller calculated
-    int32_t tailP = MAIN_KP * tailError; // Proportional control
-    int32_t tailDI = MAIN_KI * tailError * deltaT; // constantly updating part of integral control
-    int32_t tailD = MAIN_KD * (tailError - tailPrevError)/deltaT; // derivative control
+    int32_t tailP = TAIL_KP * tailError; // Proportional control
+    int32_t tailDI = TAIL_KI * tailError * deltaT; // constantly updating part of integral control
+    int32_t tailD = TAIL_KD * (tailError - tailPrevError)/deltaT; // derivative control
 
-    int32_t tailControl = (tailP + (tailI + tailDI) + tailD)/PWM_DIVISOR;
+    tailControl = (tailP + (tailI + tailDI) + tailD)/PWM_DIVISOR;
 
     tailPrevError = tailError; // updates previous error for altitude
 

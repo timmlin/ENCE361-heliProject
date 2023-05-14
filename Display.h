@@ -19,7 +19,12 @@
 void clearDisplay(void); // clears every line of the contents of the OLED display
 
 
-void displayOLED(int32_t altitudePercentage, int32_t yawInDregrees, uint32_t yawRemainder, int state); // displays the altitude percentage and yaw on the OLED
+void displayOLED(int32_t altitudePercentage, // displays the altitude percentage and yaw on the OLED
+                 int32_t yawInDregrees,
+                 uint32_t yawRemainder,
+                 uint8_t state,
+                 int32_t mainPWMDuty,
+                 int32_t tailPWMDuty);
 
 
 
