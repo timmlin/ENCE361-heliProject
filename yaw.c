@@ -33,7 +33,7 @@ void initYaw (void)
       GPIOIntRegister(YAW_REF_PORT_BASE, refYawIntHandler);
       GPIOIntTypeSet(YAW_REF_PORT_BASE, YAW_REF_PIN, GPIO_RISING_EDGE);
       GPIOIntEnable(YAW_REF_PORT_BASE, YAW_REF_PIN);
-      IntEnable(INT_GPIOB);
+      IntEnable(INT_GPIOC);
 
 }
 
@@ -84,21 +84,19 @@ void YawIntHandler(void)
 
     GPIOIntClear(YAW_PORT_BASE, YAW_A_PIN | YAW_B_PIN);
 
-    yaw = changeYaw();
+   changeYaw();
 
 }
 
 void refYawIntHandler(void)
 {
     GPIOIntClear(YAW_REF_PORT_BASE, YAW_REF_PIN);
-    GPIOPinRead(YAW_REF_PORT_BASE, YAW_REF_PIN);
     yaw = 0;
     isYawCalibrated = true;
-
 }
 
 
-int32_t changeYaw()
+void changeYaw()
 {
 
 
@@ -146,7 +144,6 @@ int32_t changeYaw()
         break;
     }
     yaw %= (TEETH_NUM * STATE_NUM);
-    return yaw;
 }
 
 int32_t YawToDegrees()

@@ -26,7 +26,7 @@
 #define SYSTICK_RATE_HZ    100
 
 // PWM configuration
-#define PWM_RATE_HZ  250
+#define PWM_RATE_HZ  100
 //#define PWM_RATE_STEP_HZ   50
 //#define PWM_RATE_MIN_HZ    50
 //#define PWM_RATE_MAX_HZ    400
@@ -58,8 +58,6 @@
 
 
 //--Tail Rotor PWM: PF1
-#define TAIL_PWM_START_RATE_HZ   200
-
 #define TAIL_PWM_BASE            PWM1_BASE
 #define TAIL_PWM_GEN             PWM_GEN_2
 #define TAIL_PWM_OUTNUM          PWM_OUT_5
@@ -75,13 +73,13 @@
  **********************************************************/
 #define PWM_DIVISOR 100
 
-#define MAIN_KP 450
+#define MAIN_KP 400
 #define MAIN_KI 20
-#define MAIN_KD 10
+#define MAIN_KD 150
 
-#define TAIL_KP 43
-#define TAIL_KI 25
-#define TAIL_KD 0
+#define TAIL_KP 500
+#define TAIL_KI 20
+#define TAIL_KD 10
 
 void initialiseMainPWM (void);
 

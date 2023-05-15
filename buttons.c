@@ -33,6 +33,7 @@ volatile bool UP_BUTTON_FLAG = false;
 volatile bool DOWN_BUTTON_FLAG = false;
 volatile bool LEFT_BUTTON_FLAG = false;
 volatile bool RIGHT_BUTTON_FLAG = false;
+
 volatile bool SWITCH1_FLAG = false;
 
 // *******************************************************
@@ -100,10 +101,10 @@ initButtons (void)
     SysCtlPeripheralEnable (SWITCH1_PERIPH);
     GPIOPinTypeGPIOInput (SWITCH1_PORT_BASE, SWITCH1_PIN);
     GPIOPadConfigSet (SWITCH1_PORT_BASE, SWITCH1_PIN, GPIO_STRENGTH_2MA,
-       GPIO_PIN_TYPE_STD_WPU);
-
+       GPIO_PIN_TYPE_STD_WPD);
+    //interrupt for switch up
     GPIOIntRegister(SWITCH1_PORT_BASE, switchIntHandler);
-   GPIOIntTypeSet(SWITCH1_PORT_BASE, SWITCH1_PIN, GPIO_RISING_EDGE);
+   GPIOIntTypeSet(SWITCH1_PORT_BASE, SWITCH1_PIN, GPIO_BOTH_EDGES);
    GPIOIntEnable(SWITCH1_PORT_BASE, SWITCH1_PIN);
     but_normal[SWITCH1] = SWITCH1_NORMAL;
 
@@ -182,28 +183,27 @@ checkButton (uint8_t butName)
 void buttonsIntHandler()
 {
 
+        GPIOIntClear(UP_BUT_PORT_BASE, UP_BUT_PIN);
+        GPIOIntClear(DOWN_BUT_PORT_BASE, DOWN_BUT_PIN);
+        GPIOIntClear(LEFT_BUT_PORT_BASE, LEFT_BUT_PIN);
+        GPIOIntClear(RIGHT_BUT_PORT_BASE,  RIGHT_BUT_PIN);
 
 
     if (checkButton (UP) == PUSHED)
     {
         UP_BUTTON_FLAG = true;
-
-        GPIOIntClear(UP_BUT_PORT_BASE, UP_BUT_PIN);
     }
     if (checkButton (DOWN) == PUSHED)
     {
-
-        GPIOIntClear(DOWN_BUT_PORT_BASE, LEFT_BUT_PIN);
+        DOWN_BUTTON_FLAG = true;
     }
     if (checkButton (LEFT) == PUSHED)
     {
-
-        GPIOIntClear(LEFT_BUT_PORT_BASE, LEFT_BUT_PIN);
+        LEFT_BUTTON_FLAG = true;
     }
     if (checkButton (RIGHT) == PUSHED)
     {
-
-        GPIOIntClear(RIGHT_BUT_PORT_BASE,  RIGHT_BUT_PIN);
+        RIGHT_BUTTON_FLAG = true;
     }
 }
 
@@ -213,20 +213,7 @@ void switchIntHandler()
     SWITCH1_FLAG = true;
 
     GPIOIntClear(SWITCH1_PORT_BASE, SWITCH1_PIN);
-
-
-
 }
-
-
-
-
-
-
-
-
-
-
 
 
 

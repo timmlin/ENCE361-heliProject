@@ -62,7 +62,9 @@ extern volatile bool  UP_BUTTON_FLAG;
 extern volatile bool DOWN_BUTTON_FLAG;
 extern volatile bool LEFT_BUTTON_FLAG;
 extern volatile bool RIGHT_BUTTON_FLAG;
+
 extern volatile bool SWITCH1_FLAG;
+
 
 
 #define NUM_BUT_POLLS 3
@@ -84,6 +86,7 @@ initButtons (void);
 void buttonsIntHandler(void);
 
 void switchIntHandler(void);
+
 // *******************************************************
 // updateButtons: Function designed to be called regularly. It polls all
 // buttons once and updates variables associated with the buttons if

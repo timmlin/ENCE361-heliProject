@@ -27,6 +27,9 @@
 
 #define FIND_REF_YAW_DUTY_CYCLE 10
 
+#define MAIN_LANDED_PWM 0
+#define TAIL_LANDED_PWM 0
+
 #define HOVER_ALT_PERCENTAGE 10
 
 
@@ -47,15 +50,8 @@ volatile uint8_t slowTick = false;
 void
 SysTickIntHandler (void)
 {
-    static uint8_t tickCount = 0;
-       const uint8_t ticksPerSlow = SYSTICK_RATE_HZ / SLOWTICK_RATE_HZ;
 
-       updateButtons ();       // Poll the buttons
-       if (++tickCount >= ticksPerSlow)
-       {                       // Signal a slow tick
-           tickCount = 0;
-           slowTick = true;
-       }
+   updateButtons();       // Poll the buttons and runs a debouncing algorithm
 
     ADCProcessorTrigger(ADC0_BASE, 3);
     g_ulSampCnt++;
@@ -105,6 +101,7 @@ initClock (void)
 
 int
 main(void)
+
 {
     // As a precaution, make sure that the peripherals used are reset
     SysCtlPeripheralReset (PWM_MAIN_PERIPH_GPIO); // Used for PWM output
@@ -133,7 +130,6 @@ main(void)
            LANDING
        };
     enum States currentState  = LANDED;
-    enum States previousState = LANDED;
     uint8_t stateNum = 0;
 
     bool stateChange = false;
@@ -159,26 +155,19 @@ main(void)
     while (true)
     {
 
-    //*****************************************************************************
-    // Finite State Machine
-    //*****************************************************************************
-        if (currentState != previousState)
-        {
-            stateChange = true;
-            previousState = currentState;
-        }
 
         switch(currentState)
         {
         case LANDED:
+            stateNum = 0;
+            setMainPWM(MAIN_LANDED_PWM);
+            setTailPWM(TAIL_LANDED_PWM);
 
-            if (SWITCH1_FLAG)
+            if(SWITCH1_FLAG)
             {
                 SWITCH1_FLAG = false;
-
-
                 currentState = TAKEOFF;
-                stateNum = 1;
+                stateChange = true;
             }
 
 
@@ -186,38 +175,49 @@ main(void)
 
         case TAKEOFF:
 
+            stateNum = 1;
+
             if(stateChange)
-            {   // enables and disables for TAKEOFF state
+            {
                 stateChange = false;
                 isYawCalibrated = false;
-
-                //go up here to TransitionHoverAltitude = 5% ??
-                //PID control used here but could possibly be disabled if it's a problem
-               // targetAltitudePercentage = 5;
-
             }
 
             if(!isYawCalibrated)
             {
+                targetYawInDegrees = 361; //cause heli to rotate untill ref yaw is found
                 targetAltitudePercentage = HOVER_ALT_PERCENTAGE;
                 disableRefYawInt(false); // enable ref yaw interrupt
 
                 setMainPWM(mainDuty);
-                setTailPWM(75);
+                setTailPWM(tailDuty);
+
+                if (currentAltitudePercentage > 0) //stop heli from rotating while on ground
+                {
+                    setTailPWM(tailDuty);
+                }
             }
             else
             {
 
                disableRefYawInt(true); // disable ref yaw interrupt
                currentState = FLYING;
-               stateNum = 2;
                targetYawInDegrees = 0;
                stateChange = true;
-               setTailPWM(tailDuty);
             }
+
+            if(SWITCH1_FLAG)
+            {
+                SWITCH1_FLAG = false;
+
+                currentState = LANDING;
+                stateChange = true;
+            }
+
             break;
 
         case FLYING:
+               stateNum = 2;
 
             // Background task: Check for button flags are set
             if(UP_BUTTON_FLAG)
@@ -235,11 +235,10 @@ main(void)
 
             }
 
-
-
             if (DOWN_BUTTON_FLAG)
             {
                 DOWN_BUTTON_FLAG = false;
+
                 if (targetAltitudePercentage <= 10)
                 {
                     currentState = LANDING;
@@ -279,6 +278,16 @@ main(void)
                 }
             }
 
+            if(SWITCH1_FLAG)
+            {
+                SWITCH1_FLAG = false;
+
+                currentState = LANDING;
+                targetAltitudePercentage = 10;
+                stateChange = true;
+            }
+
+
             setMainPWM(mainDuty);
             setTailPWM(tailDuty);
 
@@ -287,16 +296,26 @@ main(void)
         case LANDING:
             // something here about Is landing position found (same actually as in calibration stage)
             // set target yaw to 0
+            stateNum = 3;
 
-            //enable ref yaw interrupt
-            disableRefYawInt(false);
-            //setTailPWM(FIND_REF_YAW_DUTY_CYCLE);
+            targetYawInDegrees = 0;
+
+
+            setMainPWM(mainDuty);
+            setTailPWM(tailDuty);
+
+            if(currentYawInDegrees == 0 && currentAltitudePercentage == 10)
+            {
+                targetAltitudePercentage = 0;
+            }
+            if (currentYawInDegrees == 0 && currentAltitudePercentage == 0)
+            {
+                currentState = LANDED;
+            }
 
 
             break;
         }
-
-
 
         //*****************************************************************************
         //Altitude
@@ -327,7 +346,7 @@ main(void)
 
         mainDuty = mainRotorControlUpdate(targetAltitudePercentage, currentAltitudePercentage, 0.1);
 
-        tailDuty = tailRotorControlUpdate (targetYawInDegrees, currentYawInDegrees,  0.1);
+        tailDuty = tailRotorControlUpdate (targetYawInDegrees, currentYawInDegrees,  1);
 
         //*****************************************************************************
         //display

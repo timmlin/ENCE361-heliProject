@@ -7,7 +7,7 @@
 #include "ControllerPWM.h"
 
 
-#define MAX_OUTPUT 98
+#define MAX_OUTPUT 70
 #define MIN_OUTPUT 2
 
 

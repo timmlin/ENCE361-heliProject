@@ -66,7 +66,7 @@ void refYawIntHandler(void);
 void disableRefYawInt(bool disable);
 
 
-int32_t changeYaw();
+void changeYaw();
 
 int32_t YawToDegrees();
 
