@@ -11,7 +11,7 @@
 volatile bool isYawCalibrated = false;
 
 // Setting up Interrupt for yaw quadrature encoder
-void initYaw (void)
+void InitYaw (void)
 {
 
     SysCtlPeripheralEnable (YAW_PERIPH);
@@ -30,7 +30,7 @@ void initYaw (void)
 
     GPIOPadConfigSet (YAW_REF_PORT_BASE, YAW_REF_PIN, GPIO_STRENGTH_2MA,
          GPIO_PIN_TYPE_STD_WPU);
-      GPIOIntRegister(YAW_REF_PORT_BASE, refYawIntHandler);
+      GPIOIntRegister(YAW_REF_PORT_BASE, RefYawIntHandler);
       GPIOIntTypeSet(YAW_REF_PORT_BASE, YAW_REF_PIN, GPIO_RISING_EDGE);
       GPIOIntEnable(YAW_REF_PORT_BASE, YAW_REF_PIN);
       IntEnable(INT_GPIOC);
@@ -38,7 +38,7 @@ void initYaw (void)
 }
 
 // Function to Disable Reference Yaw Interrupt once calibrated
-void disableRefYawInt(bool disable)
+void DisableRefYawInt(bool disable)
 {
     if (disable)
     {
@@ -84,11 +84,11 @@ void YawIntHandler(void)
 
     GPIOIntClear(YAW_PORT_BASE, YAW_A_PIN | YAW_B_PIN);
 
-   changeYaw();
+   ChangeYaw();
 
 }
 
-void refYawIntHandler(void)
+void RefYawIntHandler(void)
 {
     GPIOIntClear(YAW_REF_PORT_BASE, YAW_REF_PIN);
     yaw = 0;
@@ -96,7 +96,7 @@ void refYawIntHandler(void)
 }
 
 
-void changeYaw()
+void ChangeYaw()
 {
 
 
@@ -156,7 +156,7 @@ int32_t YawToDegrees()
         currentYaw -= TEETH_NUM * STATE_NUM;
     }
 
-    if (currentYaw < -((TEETH_NUM * STATE_NUM) /2) -1)
+    if (currentYaw < - ((TEETH_NUM * STATE_NUM) /2) -1)
     {
         currentYaw += TEETH_NUM * STATE_NUM;
     }

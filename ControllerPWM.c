@@ -28,8 +28,7 @@ int32_t tailControl = 0;
  * M0PWM7 (J4-05, PC5) is used for the main rotor motor
  *********************************************************/
 
-void
-initialiseMainPWM (void)
+void InitialiseMainPWM (void)
 {
     //initialises the interrupt PWM for the main rotor
     SysCtlPeripheralEnable(PWM_MAIN_PERIPH_PWM);
@@ -49,7 +48,7 @@ initialiseMainPWM (void)
 }
 
 
-void initialiseTailPWM()
+void InitialiseTailPWM()
 {
        //initialises the interrupt PWM for the tail rotor
        SysCtlPeripheralEnable(TAIL_PWM_PERIPH_PWM);
@@ -73,7 +72,7 @@ void initialiseTailPWM()
 //***********************************************************
 // Function to set the frequency, duty cycle of the Main PWM
 //***********************************************************
-void setMainPWM (uint32_t mainPWMDuty)
+void SetMainPWM (uint32_t mainPWMDuty)
 {
     // Calculate the PWM period corresponding to the frequency
     uint32_t mainPWMPeriod =
@@ -90,16 +89,16 @@ void setMainPWM (uint32_t mainPWMDuty)
 //***********************************************************
 // Function to set the frequency, duty cycle of the Tail PWM
 //***********************************************************
-void setTailPWM (uint32_t TailPWMduty)
+void SetTailPWM (uint32_t tailPWMDuty)
 {
     // Calculate the PWM period corresponding to the frequency
-        uint32_t TailPWMPeriod =
+        uint32_t tailPWMPeriod =
             SysCtlClockGet() / PWM_DIVIDER / PWM_RATE_HZ;
 
-        PWMGenPeriodSet(TAIL_PWM_BASE, TAIL_PWM_GEN, TailPWMPeriod);
+        PWMGenPeriodSet(TAIL_PWM_BASE, TAIL_PWM_GEN, tailPWMPeriod);
 
         PWMPulseWidthSet(TAIL_PWM_BASE, TAIL_PWM_OUTNUM,
-                         TailPWMPeriod * TailPWMduty / 100);
+                         tailPWMPeriod * tailPWMDuty / 100);
 }
 
 
@@ -107,7 +106,7 @@ void setTailPWM (uint32_t TailPWMduty)
 // *******************************************************
 // Main Rotor PID control for Altitude
 // *******************************************************
-int32_t mainRotorControlUpdate (int32_t targetAltitudePercentage, int32_t currentAltitudePercentage, float deltaT)
+int32_t MainRotorControlUpdate (int32_t targetAltitudePercentage, int32_t currentAltitudePercentage, float deltaT)
 {
     mainError = targetAltitudePercentage - currentAltitudePercentage; // Error calculation for altitude
 
@@ -144,9 +143,19 @@ int32_t mainRotorControlUpdate (int32_t targetAltitudePercentage, int32_t curren
 // *******************************************************
 
 
-int32_t tailRotorControlUpdate (int32_t TargetYawInDegrees, int32_t CurrentYawInDegreers, float deltaT)
+int32_t TailRotorControlUpdate (int32_t targetYawInDegrees, int32_t currentYawInDegreers, float deltaT)
 {
-    tailError = TargetYawInDegrees - CurrentYawInDegreers; // Error calculation for yaw
+    tailError = targetYawInDegrees - currentYawInDegreers; // Error calculation for yaw
+
+
+    if (tailError > 180)
+    {
+        tailError -= 360;
+    }
+    else if (tailError < -(179))
+    {
+           tailError += 360;
+    }
 
     //PID controller calculated
     int32_t tailP = TAIL_KP * tailError; // Proportional control
@@ -170,6 +179,7 @@ int32_t tailRotorControlUpdate (int32_t TargetYawInDegrees, int32_t CurrentYawIn
     else
     {
         tailI += tailDI; // accumulates error signal from tail rotor only if controller output is within the specified limits
+
     }
 
     return tailControl;

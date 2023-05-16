@@ -52,21 +52,21 @@ static int32_t currentYaw = 0;
 
 
 // Setting up Interrupt for yaw quadrature encoder
-void initYaw (void);
+void InitYaw (void);
 
 
 // Finite State Machine to determine current state
 void YawIntHandler(void);
 
 // reference yaw interrupt handler
-void refYawIntHandler(void);
+void RefYawIntHandler(void);
 
 
 // Disables or enables the reference yaw interrupt
-void disableRefYawInt(bool disable);
+void DisableRefYawInt(bool disable);
 
 
-void changeYaw();
+void ChangeYaw();
 
 int32_t YawToDegrees();
 

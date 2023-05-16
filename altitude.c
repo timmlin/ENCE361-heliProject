@@ -14,12 +14,11 @@ static circBuf_t g_inBuffer;        // Buffer of size BUF_SIZE integers (sample 
 
 
 
-void
-initADC (void)
+void InitADC (void)
 {
 
 
-    initCircBuf (&g_inBuffer, BUF_SIZE);
+    InitCircBuf (&g_inBuffer, BUF_SIZE);
 
     //
     // The ADC0 peripheral must be enabled for configuration and use.
@@ -65,8 +64,7 @@ initADC (void)
 // Writes to the circular buffer.
 //
 //*****************************************************************************
-void
-ADCIntHandler(void)
+void ADCIntHandler(void)
 {
     uint32_t ulValue;
 
@@ -76,7 +74,7 @@ ADCIntHandler(void)
     ADCSequenceDataGet(ADC0_BASE, 3, &ulValue);
     //
     // Place it in the circular buffer (advancing write index)
-    writeCircBuf (&g_inBuffer, ulValue);
+    WriteCircBuf (&g_inBuffer, ulValue);
     //
     // Clean up, clearing the interrupt
     ADCIntClear(ADC0_BASE, 3);
@@ -92,7 +90,7 @@ int32_t CalculateMeanADC()
         uint8_t index;
         for (index = 0; index < BUF_SIZE; index++)
         {
-            sum = sum + readCircBuf (&g_inBuffer);
+            sum = sum + ReadCircBuf (&g_inBuffer);
         }
 
         int32_t curADCValue = (2 * sum + BUF_SIZE) / 2 / BUF_SIZE;

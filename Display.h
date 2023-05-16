@@ -16,16 +16,19 @@
 #define MAX_DISPLAY_CHAR 17
 
 
-void clearDisplay(void); // clears every line of the contents of the OLED display
+void ClearDisplay(void); // clears every line of the contents of the OLED display
 
-
-void displayOLED(int32_t altitudePercentage, // displays the altitude percentage and yaw on the OLED
+// displays the altitude percentage and yaw on the OLED
+void DebugDisplayOLED(int32_t altitudePercentage,
                  int32_t yawInDregrees,
                  uint32_t yawRemainder,
-                 uint8_t state,
-                 int32_t mainPWMDuty,
-                 int32_t tailPWMDuty);
+                 uint8_t state);
 
+void DisplayOLED(int32_t altitudePercentage,
+                 int32_t yawInDregrees,
+                 uint32_t yawRemainder,
+                 uint32_t mainPWMDuty,
+                 uint32_t tailPWMDuty);
 
 
 

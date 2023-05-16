@@ -39,8 +39,7 @@ volatile bool SWITCH1_FLAG = false;
 // *******************************************************
 // initButtons: Initialise the variables associated with the set of buttons
 // defined by the constants in the buttons2.h header file.
-void
-initButtons (void)
+void InitButtons (void)
 {
     //resets peripherals as a precaution
     SysCtlPeripheralReset (UP_BUT_PERIPH);        // UP button GPIO
@@ -54,7 +53,7 @@ initButtons (void)
     GPIOPinTypeGPIOInput (UP_BUT_PORT_BASE, UP_BUT_PIN);
     GPIOPadConfigSet (UP_BUT_PORT_BASE, UP_BUT_PIN, GPIO_STRENGTH_2MA,
        GPIO_PIN_TYPE_STD_WPD);
-    GPIOIntRegister(UP_BUT_PORT_BASE, buttonsIntHandler);
+    GPIOIntRegister(UP_BUT_PORT_BASE, ButtonsIntHandler);
     GPIOIntTypeSet(UP_BUT_PORT_BASE, UP_BUT_PIN, GPIO_FALLING_EDGE);
     GPIOIntEnable(UP_BUT_PORT_BASE, UP_BUT_PIN);
     but_normal[UP] = UP_BUT_NORMAL;
@@ -65,7 +64,7 @@ initButtons (void)
     GPIOPinTypeGPIOInput (DOWN_BUT_PORT_BASE, DOWN_BUT_PIN);
     GPIOPadConfigSet (DOWN_BUT_PORT_BASE, DOWN_BUT_PIN, GPIO_STRENGTH_2MA,
        GPIO_PIN_TYPE_STD_WPD);
-    GPIOIntRegister(DOWN_BUT_PORT_BASE, buttonsIntHandler);
+    GPIOIntRegister(DOWN_BUT_PORT_BASE, ButtonsIntHandler);
     GPIOIntTypeSet(DOWN_BUT_PORT_BASE, DOWN_BUT_PIN, GPIO_FALLING_EDGE);
     GPIOIntEnable(DOWN_BUT_PORT_BASE, DOWN_BUT_PIN);
     but_normal[DOWN] = DOWN_BUT_NORMAL;
@@ -76,7 +75,7 @@ initButtons (void)
     GPIOPinTypeGPIOInput (LEFT_BUT_PORT_BASE, LEFT_BUT_PIN);
     GPIOPadConfigSet (LEFT_BUT_PORT_BASE, LEFT_BUT_PIN, GPIO_STRENGTH_2MA,
        GPIO_PIN_TYPE_STD_WPU);
-    GPIOIntRegister(LEFT_BUT_PORT_BASE, buttonsIntHandler);
+    GPIOIntRegister(LEFT_BUT_PORT_BASE, ButtonsIntHandler);
     //left and right buttons on the same port base
     GPIOIntTypeSet(LEFT_BUT_PORT_BASE, LEFT_BUT_PIN | RIGHT_BUT_PIN, GPIO_RISING_EDGE);
     GPIOIntEnable(LEFT_BUT_PORT_BASE, LEFT_BUT_PIN | RIGHT_BUT_PIN);
@@ -103,7 +102,7 @@ initButtons (void)
     GPIOPadConfigSet (SWITCH1_PORT_BASE, SWITCH1_PIN, GPIO_STRENGTH_2MA,
        GPIO_PIN_TYPE_STD_WPD);
     //interrupt for switch up
-    GPIOIntRegister(SWITCH1_PORT_BASE, switchIntHandler);
+    GPIOIntRegister(SWITCH1_PORT_BASE, SwitchIntHandler);
    GPIOIntTypeSet(SWITCH1_PORT_BASE, SWITCH1_PIN, GPIO_BOTH_EDGES);
    GPIOIntEnable(SWITCH1_PORT_BASE, SWITCH1_PIN);
     but_normal[SWITCH1] = SWITCH1_NORMAL;
@@ -132,8 +131,7 @@ initButtons (void)
 // A state change occurs only after NUM_BUT_POLLS consecutive polls have
 // read the pin in the opposite condition, before the state changes and
 // a flag is set.  Set NUM_BUT_POLLS according to the polling rate.
-void
-updateButtons (void)
+void UpdateButtons (void)
 {
 	bool but_value[NUM_BUTS];
 	int i;
@@ -165,8 +163,7 @@ updateButtons (void)
 // checkButton: Function returns the new button logical state if the button
 // logical state (PUSHED or RELEASED) has changed since the last call,
 // otherwise returns NO_CHANGE.
-uint8_t
-checkButton (uint8_t butName)
+uint8_t CheckButton (uint8_t butName)
 {
 	if (but_flag[butName])
 	{
@@ -180,7 +177,7 @@ checkButton (uint8_t butName)
 }
 
 
-void buttonsIntHandler()
+void ButtonsIntHandler()
 {
 
         GPIOIntClear(UP_BUT_PORT_BASE, UP_BUT_PIN);
@@ -189,26 +186,26 @@ void buttonsIntHandler()
         GPIOIntClear(RIGHT_BUT_PORT_BASE,  RIGHT_BUT_PIN);
 
 
-    if (checkButton (UP) == PUSHED)
+    if (CheckButton (UP) == PUSHED)
     {
         UP_BUTTON_FLAG = true;
     }
-    if (checkButton (DOWN) == PUSHED)
+    if (CheckButton (DOWN) == PUSHED)
     {
         DOWN_BUTTON_FLAG = true;
     }
-    if (checkButton (LEFT) == PUSHED)
+    if (CheckButton (LEFT) == PUSHED)
     {
         LEFT_BUTTON_FLAG = true;
     }
-    if (checkButton (RIGHT) == PUSHED)
+    if (CheckButton (RIGHT) == PUSHED)
     {
         RIGHT_BUTTON_FLAG = true;
     }
 }
 
 
-void switchIntHandler()
+void SwitchIntHandler()
 {
     SWITCH1_FLAG = true;
 

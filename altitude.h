@@ -21,7 +21,7 @@
 #include "circBufT.h"
 #include "inc/hw_ints.h"  // Interrupts
 
-void initADC (void);
+void InitADC (void);
 
 void ADCIntHandler(void);
 

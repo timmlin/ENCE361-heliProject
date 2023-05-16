@@ -81,17 +81,17 @@
 #define TAIL_KI 20
 #define TAIL_KD 10
 
-void initialiseMainPWM (void);
+void InitialiseMainPWM (void);
 
-void initialiseTailPWM(void);
+void InitialiseTailPWM(void);
 
-void setMainPWM (uint32_t MainPWMDuty);
+void SetMainPWM (uint32_t mainPWMDuty);
 
-void setTailPWM (uint32_t TailPWMDuty);
+void SetTailPWM (uint32_t tailPWMDuty);
 
-int32_t mainRotorControlUpdate (int32_t TargetAltitude, int32_t altitudePercentage, float deltaT);
+int32_t MainRotorControlUpdate (int32_t targetAltitude, int32_t altitudePercentage, float deltaT);
 
-int32_t tailRotorControlUpdate (int32_t TargetYaw, int32_t CurrentYawInDegreers, float deltaT);
+int32_t TailRotorControlUpdate (int32_t targetYaw, int32_t currentYawInDegreers, float deltaT);
 
 
 

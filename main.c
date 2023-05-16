@@ -15,6 +15,7 @@
 #include "yaw.h"
 #include "ControllerPWM.h"
 #include "buttons.h"
+#include "uart.h"
 
 //*****************************************************************************
 // Constants
@@ -32,7 +33,7 @@
 
 #define HOVER_ALT_PERCENTAGE 10
 
-
+#define DEBUG
 
 //*****************************************************************************
 // Global variables
@@ -47,11 +48,10 @@ volatile uint8_t slowTick = false;
 // The interrupt handler for the for SysTick interrupt.
 //
 //*****************************************************************************
-void
-SysTickIntHandler (void)
+void SysTickIntHandler (void)
 {
 
-   updateButtons();       // Poll the buttons and runs a debouncing algorithm
+   UpdateButtons();       // Poll the buttons and runs a debouncing algorithm
 
     ADCProcessorTrigger(ADC0_BASE, 3);
     g_ulSampCnt++;
@@ -59,8 +59,7 @@ SysTickIntHandler (void)
 
 
 //*******************************************************************
-void
-initSysTick (void)
+void initSysTick (void)
 {
     //
     // Set up the period for the SysTick timer.  The SysTick timer period is
@@ -78,8 +77,7 @@ initSysTick (void)
 //*****************************************************************************
 // Initialisation functions for the clock (incl. SysTick), ADC
 //*****************************************************************************
-void
-initClock (void)
+void initClock (void)
 {
     // Set the clock rate to 20 MHz
     SysCtlClockSet (SYSCTL_SYSDIV_10 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN |
@@ -99,8 +97,7 @@ initClock (void)
 
 
 
-int
-main(void)
+int main(void)
 
 {
     // As a precaution, make sure that the peripherals used are reset
@@ -112,13 +109,13 @@ main(void)
 
 
     initClock();
-    initADC();
-    initButtons();
+    InitADC();
+    InitButtons();
     OLEDInitialise();
     initSysTick();
-    initYaw();
-    initialiseMainPWM (); //initilises the main PWM signal
-    initialiseTailPWM(); // initilises  and sets the PWM signal for the tail motor
+    InitYaw();
+    InitialiseMainPWM (); //initilises the main PWM signal
+    InitialiseTailPWM(); // initilises  and sets the PWM signal for the tail motor
     IntMasterEnable(); // Enable interrupts to the processor.
 
 
@@ -160,8 +157,8 @@ main(void)
         {
         case LANDED:
             stateNum = 0;
-            setMainPWM(MAIN_LANDED_PWM);
-            setTailPWM(TAIL_LANDED_PWM);
+            SetMainPWM(MAIN_LANDED_PWM);
+            SetTailPWM(TAIL_LANDED_PWM);
 
             if(SWITCH1_FLAG)
             {
@@ -185,22 +182,22 @@ main(void)
 
             if(!isYawCalibrated)
             {
-                targetYawInDegrees = 361; //cause heli to rotate untill ref yaw is found
                 targetAltitudePercentage = HOVER_ALT_PERCENTAGE;
-                disableRefYawInt(false); // enable ref yaw interrupt
+                DisableRefYawInt(false); // enable ref yaw interrupt
 
-                setMainPWM(mainDuty);
-                setTailPWM(tailDuty);
 
                 if (currentAltitudePercentage > 0) //stop heli from rotating while on ground
                 {
-                    setTailPWM(tailDuty);
+                    targetYawInDegrees = currentYawInDegrees + 15;
                 }
+
+                SetMainPWM(mainDuty);
+                SetTailPWM(tailDuty);
             }
             else
             {
 
-               disableRefYawInt(true); // disable ref yaw interrupt
+               DisableRefYawInt(true); // disable ref yaw interrupt
                currentState = FLYING;
                targetYawInDegrees = 0;
                stateChange = true;
@@ -258,7 +255,7 @@ main(void)
 
                 targetYawInDegrees -= 15;
 
-                if (targetYawInDegrees < -180)
+                if (targetYawInDegrees < -179)
                 {
                     targetYawInDegrees  += 360;
                 }
@@ -288,8 +285,8 @@ main(void)
             }
 
 
-            setMainPWM(mainDuty);
-            setTailPWM(tailDuty);
+            SetMainPWM(mainDuty);
+            SetTailPWM(tailDuty);
 
 
         break;
@@ -301,8 +298,8 @@ main(void)
             targetYawInDegrees = 0;
 
 
-            setMainPWM(mainDuty);
-            setTailPWM(tailDuty);
+            SetMainPWM(mainDuty);
+            SetTailPWM(tailDuty);
 
             if(currentYawInDegrees == 0 && currentAltitudePercentage == 10)
             {
@@ -344,19 +341,21 @@ main(void)
         //PID Control
         //*****************************************************************************
 
-        mainDuty = mainRotorControlUpdate(targetAltitudePercentage, currentAltitudePercentage, 0.1);
+        mainDuty = MainRotorControlUpdate(targetAltitudePercentage, currentAltitudePercentage, 0.1);
 
-        tailDuty = tailRotorControlUpdate (targetYawInDegrees, currentYawInDegrees,  1);
+        tailDuty = TailRotorControlUpdate (targetYawInDegrees, currentYawInDegrees,  1);
 
         //*****************************************************************************
         //display
         //*****************************************************************************
 
-        displayOLED(currentAltitudePercentage, currentYawInDegrees, yawRemainder, stateNum, mainDuty, tailDuty );
+        #ifdef DEBUG
+            DebugDisplayOLED(currentAltitudePercentage, currentYawInDegrees, yawRemainder, stateNum);
+        #endif
 
-
-
-
+        #ifndef DEBUG
+            DisplayOLED(currentAltitudePercentage, currentYawInDegrees, yawRemainder, mainDuty, tailDuty );
+        #endif
 
 
     }
