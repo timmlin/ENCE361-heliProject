@@ -49,6 +49,8 @@ void InitADC (void)
     // Register the interrupt handler
     ADCIntRegister (ADC0_BASE, 3, ADCIntHandler);
 
+
+
     //
     // Enable interrupts for ADC0 sequence 3 (clears any outstanding interrupts)
     ADCIntEnable(ADC0_BASE, 3);
@@ -84,17 +86,17 @@ void ADCIntHandler(void)
 
 int32_t CalculateMeanADC()
 {
- // Background task: calculate the (approximate) mean of the values in the
-        // circular buffer and display it, together with the sample number.
-        int32_t sum = 0;
-        uint8_t index;
-        for (index = 0; index < BUF_SIZE; index++)
-        {
-            sum = sum + ReadCircBuf (&g_inBuffer);
-        }
+    // Background task: calculate the (approximate) mean of the values in the
+    // circular buffer and display it, together with the sample number.
+    int32_t sum = 0;
+    uint8_t index;
+    for (index = 0; index < BUF_SIZE; index++)
+    {
+        sum = sum + ReadCircBuf (&g_inBuffer);
+    }
 
-        int32_t curADCValue = (2 * sum + BUF_SIZE) / 2 / BUF_SIZE;
+    int32_t curADCValue = (2 * sum + BUF_SIZE) / 2 / BUF_SIZE;
 
-        return curADCValue;
+    return curADCValue;
 }
 

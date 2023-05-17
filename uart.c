@@ -15,14 +15,6 @@
 
 #include "uart.h"
 
-
-//********************************************************
-// Global variables
-//********************************************************
-char statusStr[MAX_STR_LEN + 1];
-volatile uint8_t slowTick = false;
-
-
 //********************************************************
 // initialiseUSB_UART - 8 bits, 1 stop bit, no parity
 //********************************************************
@@ -52,8 +44,7 @@ void InitialiseUSB_UART (void)
 // Transmit a string via UART0
 //**********************************************************************
 
-void
-UARTSend (char *pucBuffer)
+void UARTSend (char *pucBuffer)
 {
     // Loop while there are more characters to send.
     while(*pucBuffer)

@@ -73,6 +73,8 @@
  **********************************************************/
 #define PWM_DIVISOR 100
 
+ //Gains for Emulator
+
 #define MAIN_KP 400
 #define MAIN_KI 20
 #define MAIN_KD 150
@@ -80,6 +82,17 @@
 #define TAIL_KP 500
 #define TAIL_KI 20
 #define TAIL_KD 10
+
+ // Gains for HeliRig
+/*
+#define MAIN_KP 40
+#define MAIN_KI 5
+#define MAIN_KD 10
+
+#define TAIL_KP 50
+#define TAIL_KI 10
+#define TAIL_KD 10
+*/
 
 void InitialiseMainPWM (void);
 

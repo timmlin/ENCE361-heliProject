@@ -4,7 +4,7 @@
  *  group 55
  */
 
-#include "ControllerPWM.h"
+#include <controllerPWM.h>
 
 
 #define MAX_OUTPUT 70
@@ -112,8 +112,8 @@ int32_t MainRotorControlUpdate (int32_t targetAltitudePercentage, int32_t curren
 
     //PID controller calculated
     int32_t mainP = MAIN_KP * mainError; // Proportional control
-    int32_t mainDI = MAIN_KI * mainError * deltaT; // constantly updating part of integral control
-    int32_t mainD = MAIN_KD * (mainError - mainPrevError)/deltaT; // derivative control
+    int32_t mainDI = (MAIN_KI * mainError)/deltaT; // constantly updating part of integral control
+    int32_t mainD = MAIN_KD * (mainError - mainPrevError)*deltaT; // derivative control
 
     mainControl = (mainP + (mainI + mainDI) + mainD)/PWM_DIVISOR;
 
@@ -126,7 +126,6 @@ int32_t MainRotorControlUpdate (int32_t targetAltitudePercentage, int32_t curren
         mainControl = MAX_OUTPUT;
     }
     else if (mainControl < MIN_OUTPUT)
-
     {
         mainControl = MIN_OUTPUT;
     }
@@ -159,8 +158,8 @@ int32_t TailRotorControlUpdate (int32_t targetYawInDegrees, int32_t currentYawIn
 
     //PID controller calculated
     int32_t tailP = TAIL_KP * tailError; // Proportional control
-    int32_t tailDI = TAIL_KI * tailError * deltaT; // constantly updating part of integral control
-    int32_t tailD = TAIL_KD * (tailError - tailPrevError)/deltaT; // derivative control
+    int32_t tailDI = (TAIL_KI * tailError)/deltaT; // constantly updating part of integral control
+    int32_t tailD = TAIL_KD * (tailError - tailPrevError)*deltaT; // derivative control
 
     tailControl = (tailP + (tailI + tailDI) + tailD)/PWM_DIVISOR;
 
