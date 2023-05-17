@@ -53,6 +53,11 @@ void SysTickIntHandler (void)
 
    UpdateButtons();       // Poll the buttons and runs a debouncing algorithm
 
+   if (++tickCount >= ticksPerSlow)
+   {                       // Signal a slow tick
+       tickCount = 0;
+       slowTick = true;
+   }
     ADCProcessorTrigger(ADC0_BASE, 3);
     g_ulSampCnt++;
 }
@@ -136,8 +141,8 @@ int main(void)
     int32_t currentAltitudePercentage = 0;
     int32_t targetAltitudePercentage = 0;
 
-    int32_t targetYawInDegrees = 0;
-    int32_t currentYawInDegrees = 0;
+    int32_t targetYaw = 0;
+    int32_t currentYaw = 0;
     uint32_t yawRemainder = 0;
 
     int32_t mainDuty = 0;
@@ -167,6 +172,11 @@ int main(void)
                 stateChange = true;
             }
 
+            usprintf (statusStr, "Altitude =%4d%%  Yaw=%2d.% | \r\n mainPWM = %2d  tailPWM = %2d | \r\n LANDED",
+                                 currentAltitudePercentage,
+                                 currentYaw, yawRemainder,
+                                 mainDuty,
+                                 tailDuty); // * usprintf
 
             break;
 
@@ -188,7 +198,7 @@ int main(void)
 
                 if (currentAltitudePercentage > 0) //stop heli from rotating while on ground
                 {
-                    targetYawInDegrees = currentYawInDegrees + 15;
+                    targetYaw = currentYaw + 15;
                 }
 
                 SetMainPWM(mainDuty);
@@ -199,7 +209,7 @@ int main(void)
 
                DisableRefYawInt(true); // disable ref yaw interrupt
                currentState = FLYING;
-               targetYawInDegrees = 0;
+               targetYaw = 0;
                stateChange = true;
             }
 
@@ -211,6 +221,11 @@ int main(void)
                 stateChange = true;
             }
 
+            usprintf (statusStr, "Altitude =%4d%%  Yaw=%2d.% | \r\n mainPWM = %2d  tailPWM = %2d | \r\n TAKE OFF",
+                                 currentAltitudePercentage,
+                                 currentYaw, yawRemainder,
+                                 mainDuty,
+                                 tailDuty); // * usprintf
             break;
 
         case FLYING:
@@ -253,11 +268,11 @@ int main(void)
             {
                 LEFT_BUTTON_FLAG = false;
 
-                targetYawInDegrees -= 15;
+                targetYaw -= 15;
 
-                if (targetYawInDegrees < -179)
+                if (targetYaw < -179)
                 {
-                    targetYawInDegrees  += 360;
+                    targetYaw  += 360;
                 }
             }
 
@@ -267,11 +282,11 @@ int main(void)
             {
                 RIGHT_BUTTON_FLAG = false;
 
-                targetYawInDegrees += 15;
+                targetYaw += 15;
 
-                if (targetYawInDegrees > 180)
+                if (targetYaw > 180)
                 {
-                    targetYawInDegrees -= 360;
+                    targetYaw -= 360;
                 }
             }
 
@@ -288,28 +303,37 @@ int main(void)
             SetMainPWM(mainDuty);
             SetTailPWM(tailDuty);
 
-
+            usprintf (statusStr, "Altitude =%4d%%  Yaw=%2d.% | \r\n mainPWM = %2d  tailPWM = %2d | \r\n FLYING",
+                                 currentAltitudePercentage,
+                                 currentYaw, yawRemainder,
+                                 mainDuty,
+                                 tailDuty); // * usprintf
         break;
         case LANDING:
             // something here about Is landing position found (same actually as in calibration stage)
             // set target yaw to 0
             stateNum = 3;
 
-            targetYawInDegrees = 0;
+            targetYaw = 0;
 
 
             SetMainPWM(mainDuty);
             SetTailPWM(tailDuty);
 
-            if(currentYawInDegrees == 0 && currentAltitudePercentage == 10)
+            if(currentYaw == 0 && currentAltitudePercentage == 10)
             {
                 targetAltitudePercentage = 0;
             }
-            if (currentYawInDegrees == 0 && currentAltitudePercentage == 0)
+            if (currentYaw == 0 && currentAltitudePercentage == 0)
             {
                 currentState = LANDED;
             }
 
+            usprintf (statusStr, "Altitude =%4d%%  Yaw=%2d.% | \r\n mainPWM = %2d  tailPWM = %2d | \r\n LANDING",
+                                 currentAltitudePercentage,
+                                 currentYaw, yawRemainder,
+                                 mainDuty,
+                                 tailDuty); // * usprintf
 
             break;
         }
@@ -330,7 +354,7 @@ int main(void)
         //*****************************************************************************
 
         // Converts the yaw value to degrees rounded to a whole number
-        currentYawInDegrees = YawToDegrees();
+        currentYaw = YawToDegrees();
 
 
         // Gets the decimal point for the yaw in degrees
@@ -343,19 +367,29 @@ int main(void)
 
         mainDuty = MainRotorControlUpdate(targetAltitudePercentage, currentAltitudePercentage, 0.1);
 
-        tailDuty = TailRotorControlUpdate (targetYawInDegrees, currentYawInDegrees,  1);
+        tailDuty = TailRotorControlUpdate (targetYaw, currentYaw,  0.1);
 
         //*****************************************************************************
         //display
         //*****************************************************************************
 
         #ifdef DEBUG
-            DebugDisplayOLED(currentAltitudePercentage, currentYawInDegrees, yawRemainder, stateNum);
+            DebugDisplayOLED(currentAltitudePercentage, currentYaw, yawRemainder, stateNum);
         #endif
 
         #ifndef DEBUG
-            DisplayOLED(currentAltitudePercentage, currentYawInDegrees, yawRemainder, mainDuty, tailDuty );
+            DisplayOLED(currentAltitudePercentage, currentYaw, yawRemainder, mainDuty, tailDuty );
         #endif
+
+        // Is it time to send a message?
+        if (slowTick)
+        {
+            slowTick = false;
+            // Form and send a status message to the console
+
+
+            UARTSend (statusStr);
+        }
 
 
     }

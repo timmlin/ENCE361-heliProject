@@ -1,16 +1,32 @@
-/*
- *  Tim Lindbom (tli89)
- *  & Steph Post (spo88)
- *  group 55
- */
+//********************************************************
+//
+// uartDemo.c - Example code for ENCE361
+//
+// Link with modules:  buttons2, OrbitOLEDInterface
+//
+// Author:  P.J. Bones  UCECE
+//
+//
+// Last modified:   16.4.2018
+// Tim Lindbom (tli89)
+//  & Steph Post (spo88)
+//  group 55
+
 
 #include "uart.h"
+
+
+//********************************************************
+// Global variables
+//********************************************************
+char statusStr[MAX_STR_LEN + 1];
+volatile uint8_t slowTick = false;
+
 
 //********************************************************
 // initialiseUSB_UART - 8 bits, 1 stop bit, no parity
 //********************************************************
-void
-initialiseUSB_UART (void)
+void InitialiseUSB_UART (void)
 {
     //
     // Enable GPIO port A which is used for UART0 pins.
