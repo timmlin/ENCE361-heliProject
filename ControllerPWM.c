@@ -106,14 +106,14 @@ void SetTailPWM (uint32_t tailPWMDuty)
 // *******************************************************
 // Main Rotor PID control for Altitude
 // *******************************************************
-int32_t MainRotorControlUpdate (int32_t targetAltitudePercentage, int32_t currentAltitudePercentage, float deltaT)
+int32_t MainRotorControlUpdate (int32_t targetAltitudePercentage, int32_t currentAltitudePercentage, uint8_t DELTA_T)
 {
     mainError = targetAltitudePercentage - currentAltitudePercentage; // Error calculation for altitude
 
     //PID controller calculated
     int32_t mainP = MAIN_KP * mainError; // Proportional control
-    int32_t mainDI = (MAIN_KI * mainError)/deltaT; // constantly updating part of integral control
-    int32_t mainD = MAIN_KD * (mainError - mainPrevError)*deltaT; // derivative control
+    int32_t mainDI = (MAIN_KI * mainError)/DELTA_T; // constantly updating part of integral control
+    int32_t mainD = MAIN_KD * (mainError - mainPrevError)*DELTA_T; // derivative control
 
     mainControl = (mainP + (mainI + mainDI) + mainD)/PWM_DIVISOR;
 
@@ -142,24 +142,24 @@ int32_t MainRotorControlUpdate (int32_t targetAltitudePercentage, int32_t curren
 // *******************************************************
 
 
-int32_t TailRotorControlUpdate (int32_t targetYawInDegrees, int32_t currentYawInDegreers, float deltaT)
+int32_t TailRotorControlUpdate (int32_t targetYawInDegrees, int32_t currentYawInDegreers, uint8_t DELTA_T)
 {
     tailError = targetYawInDegrees - currentYawInDegreers; // Error calculation for yaw
 
 
-    if (tailError > 180)
+    if (tailError > DEGREES_IN_REV/2)
     {
-        tailError -= 360;
+        tailError -= DEGREES_IN_REV;
     }
-    else if (tailError < -(179))
+    else if (tailError < -((DEGREES_IN_REV/2)-1))
     {
-           tailError += 360;
+           tailError += DEGREES_IN_REV;
     }
 
     //PID controller calculated
     int32_t tailP = TAIL_KP * tailError; // Proportional control
-    int32_t tailDI = (TAIL_KI * tailError)/deltaT; // constantly updating part of integral control
-    int32_t tailD = TAIL_KD * (tailError - tailPrevError)*deltaT; // derivative control
+    int32_t tailDI = (TAIL_KI * tailError)/DELTA_T; // constantly updating part of integral control
+    int32_t tailD = TAIL_KD * (tailError - tailPrevError)* DELTA_T; // derivative control
 
     tailControl = (tailP + (tailI + tailDI) + tailD)/PWM_DIVISOR;
 

@@ -22,28 +22,18 @@
 #include "stdlib.h"
 
 
-// Systick configuration
 #define SYSTICK_RATE_HZ    100
-
-// PWM configuration
-#define PWM_RATE_HZ  100
-//#define PWM_RATE_STEP_HZ   50
-//#define PWM_RATE_MIN_HZ    50
-//#define PWM_RATE_MAX_HZ    400
-//#define PWM_FIXED_DUTY     67
-//#define PWM_MIN_DUTY       5
-//#define PWM_MAX_DUTY       95
-//#define PWM_DIVIDER_CODE   SYSCTL_PWMDIV_4
+#define PWM_RATE_HZ        100
 #define PWM_DIVIDER        4
+#define DEGREES_IN_REV     360
 
 /**********************************************************
  * PWM Constants
  **********************************************************/
 
-
 //  PWM Hardware Details M0PWM7
-
 //  ---Main Rotor PWM: PC5, J4-05
+#define PWM_DIVISOR 100
 
 #define PWM_MAIN_BASE        PWM0_BASE
 #define PWM_MAIN_GEN         PWM_GEN_3
@@ -54,8 +44,6 @@
 #define PWM_MAIN_GPIO_BASE   GPIO_PORTC_BASE
 #define PWM_MAIN_GPIO_CONFIG GPIO_PC5_M0PWM7
 #define PWM_MAIN_GPIO_PIN    GPIO_PIN_5
-
-
 
 //--Tail Rotor PWM: PF1
 #define TAIL_PWM_BASE            PWM1_BASE
@@ -71,15 +59,14 @@
 /**********************************************************
  * PID Constants
  **********************************************************/
-#define PWM_DIVISOR 100
 
  //Gains for Emulator
 
-#define MAIN_KP 400
+#define MAIN_KP 500
 #define MAIN_KI 20
 #define MAIN_KD 150
 
-#define TAIL_KP 500
+#define TAIL_KP 300
 #define TAIL_KI 20
 #define TAIL_KD 10
 
@@ -102,9 +89,9 @@ void SetMainPWM (uint32_t mainPWMDuty);
 
 void SetTailPWM (uint32_t tailPWMDuty);
 
-int32_t MainRotorControlUpdate (int32_t targetAltitude, int32_t altitudePercentage, float deltaT);
+int32_t MainRotorControlUpdate (int32_t targetAltitude, int32_t altitudePercentage, uint8_t DELTA_T);
 
-int32_t TailRotorControlUpdate (int32_t targetYaw, int32_t currentYawInDegreers, float deltaT);
+int32_t TailRotorControlUpdate (int32_t targetYaw, int32_t currentYawInDegreers, uint8_t DELTA_T);
 
 
 

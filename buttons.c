@@ -116,9 +116,6 @@ void InitButtons (void)
 	}
 
 
-
-
-
     IntEnable(INT_GPIOB);
 }
 

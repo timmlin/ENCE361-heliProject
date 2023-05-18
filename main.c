@@ -11,7 +11,6 @@
 #include <stdbool.h>
 
 #include "stdlib.h"
-#include "circBufT.h"
 #include "altitude.h"
 #include "yaw.h"
 #include "buttons.h"
@@ -45,6 +44,7 @@
 
 #define DEGREES_IN_REV 360
 
+#define DELTA_T 10
 
 #define RESET_PERIPH SYSCTL_PERIPH_GPIOA
 #define RESET_PORT_BASE GPIO_PORTA_BASE
@@ -142,7 +142,6 @@ void ResetIntHandler()
 
 
 int main(void)
-
 {
     // As a precaution, make sure that the peripherals used are reset
     SysCtlPeripheralReset (PWM_MAIN_PERIPH_GPIO); // Used for PWM output
@@ -206,6 +205,9 @@ int main(void)
         case LANDED:
             stateNum = 0;
 
+            mainDuty = MainRotorControlUpdate(targetAltitudePercentage, currentAltitudePercentage, DELTA_T);
+            tailDuty = TailRotorControlUpdate (targetYaw, currentYaw,  DELTA_T);
+
             SetMainPWM(MAIN_LANDED_PWM);
             SetTailPWM(TAIL_LANDED_PWM);
 
@@ -235,10 +237,11 @@ int main(void)
                 targetAltitudePercentage = HOVER_ALT_PERCENTAGE;
                 DisableRefYawInt(false); // enable ref yaw interrupt
 
-
-
                 targetYaw = currentYaw + CALIBRATION_YAW_INCREMENT;
 
+                mainDuty = MainRotorControlUpdate(targetAltitudePercentage, currentAltitudePercentage, DELTA_T);
+
+                tailDuty = TailRotorControlUpdate (targetYaw, currentYaw,  DELTA_T);
 
                 SetMainPWM(mainDuty);
                 SetTailPWM(tailDuty);
@@ -262,12 +265,7 @@ int main(void)
                 stateChange = true;
             }
 
-            usprintf (statusStr, "Altitude =%4d%%  Yaw=%2d.% | \r\n mainPWM = %2d  tailPWM = %2d | \r\n TAKE OFF  \r\n",
-                                 currentAltitudePercentage,
-                                 currentYaw,
-                                 yawRemainder,
-                                 mainDuty,
-                                 tailDuty);
+
             break;
 
         case FLYING:
@@ -344,27 +342,38 @@ int main(void)
                 stateChange = true;
             }
 
+            mainDuty = MainRotorControlUpdate(targetAltitudePercentage, currentAltitudePercentage, DELTA_T);
+
+            tailDuty = TailRotorControlUpdate (targetYaw, currentYaw,  DELTA_T);
+
 
             SetMainPWM(mainDuty);
             SetTailPWM(tailDuty);
 
-            usprintf (statusStr, "Altitude =%4d%%  Yaw=%2d.% | \r\n mainPWM = %2d  tailPWM = %2d | \r\n FLYING  \r\n",
-                                 currentAltitudePercentage,
-                                 currentYaw, yawRemainder,
-                                 mainDuty,
-                                 tailDuty);
         break;
         case LANDING:
 
             stateNum = 3;
 
-            targetYaw = 0;
+            mainDuty = MainRotorControlUpdate(targetAltitudePercentage, currentAltitudePercentage, DELTA_T);
+
+            tailDuty = TailRotorControlUpdate (targetYaw, currentYaw,  DELTA_T);
 
 
             SetMainPWM(mainDuty);
             SetTailPWM(tailDuty);
 
-            if(currentYaw == 0 && currentAltitudePercentage == 10)
+            if (targetYaw < 0)
+            {
+                targetYaw = currentYaw + 1;
+            }
+
+            else if (targetYaw > 0)
+            {
+                 targetYaw = currentYaw - 1;
+            }
+
+            if(currentYaw == 0 && currentAltitudePercentage == HOVER_ALT_PERCENTAGE)
             {
                 atHoverLocation = true;
             }
@@ -379,14 +388,11 @@ int main(void)
                 currentState = LANDED;
             }
 
-            usprintf (statusStr, "Altitude =%4d%%  Yaw=%2d.% | \r\n mainPWM = %2d  tailPWM = %2d | \r\n LANDING  \r\n",
-                                 currentAltitudePercentage,
-                                 currentYaw, yawRemainder,
-                                 mainDuty,
-                                 tailDuty);
+
 
             break;
         }
+
 
         //*****************************************************************************
         //Altitude
@@ -415,9 +421,9 @@ int main(void)
         //PID Control
         //*****************************************************************************
 
-        mainDuty = MainRotorControlUpdate(targetAltitudePercentage, currentAltitudePercentage, 10);
+       // mainDuty = MainRotorControlUpdate(targetAltitudePercentage, currentAltitudePercentage, DELTA_T);
 
-        tailDuty = TailRotorControlUpdate (targetYaw, currentYaw,  10);
+        //tailDuty = TailRotorControlUpdate (targetYaw, currentYaw,  DELTA_T);
 
         //*****************************************************************************
         //display
@@ -440,32 +446,41 @@ int main(void)
             switch(stateNum)
             {
                 case 0:
-                    usprintf (statusStr, "Altitude =%4d%%  Yaw=%2d.%2d  \r\nMainPWM = %2d  tailPWM = %2d  \r\nLANDED  \r\n----------------------\r\n",
-                                               currentAltitudePercentage,
-                                               currentYaw, yawRemainder,
-                                               mainDuty,
-                                               tailDuty);
+                    usprintf (statusStr, "\r\n Altitude =%2d%%   Yaw=%2d.%2d   MainPWM = %2d   tailPWM = %2d   LANDED \r\n\n",
+                                   currentAltitudePercentage,
+                                   currentYaw,
+                                   yawRemainder,
+                                   mainDuty,
+                                   tailDuty);
+                    break;
+
                 case 1:
-                    usprintf (statusStr, "Altitude =%4d%%  Yaw=%2d.%2d  \r\nMainPWM = %2d  tailPWM = %2d  \r\nTAKE OFF  \r\n----------------------\r\n",
+                    usprintf (statusStr, "\r\n Altitude =%2d%%   Yaw=%2d.%2d   MainPWM = %2d   tailPWM = %2d   TAKE_OFF \r\n\n",
                                   currentAltitudePercentage,
-                                  currentYaw, yawRemainder,
+                                  currentYaw,
+                                  yawRemainder,
                                   mainDuty,
                                   tailDuty);
+                    break;
                 case 2:
-                    usprintf (statusStr, "Altitude =%4d%%  Yaw=%2d.%2d  \r\nMainPWM = %2d  tailPWM = %2d  \r\nFLYING  \r\n----------------------\r\n",
-                                                               currentAltitudePercentage,
-                                                               currentYaw, yawRemainder,
-                                                               mainDuty,
-                                                               tailDuty);
+                    usprintf (statusStr, "\r\n Altitude =%2d%%   Yaw=%2d.%2d   MainPWM = %2d   tailPWM = %2d   FLYING \r\n\n",
+                                   currentAltitudePercentage,
+                                   currentYaw,
+                                   yawRemainder,
+                                   mainDuty,
+                                   tailDuty);
+                    break;
                 case 3:
-                    usprintf (statusStr, "Altitude =%4d%%  Yaw=%2d.%2d  \r\nMainPWM = %2d  tailPWM = %2d  \r\nLANDING  \r\n----------------------\r\n",
-                                                               currentAltitudePercentage,
-                                                               currentYaw, yawRemainder,
-                                                               mainDuty,
-                                                               tailDuty);
+                    usprintf (statusStr, "\r\n Altitude =%2d%%   Yaw=%2d.%2d   MainPWM = %2d   tailPWM = %2d   LANDING \r\n\n",
+                                   currentAltitudePercentage,
+                                   currentYaw,
+                                   yawRemainder,
+                                   mainDuty,
+                                   tailDuty);
+                    break;
             }
 
-           //UARTSend (statusStr);
+           UARTSend (statusStr);
         }
 
 
