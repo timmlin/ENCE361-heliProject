@@ -162,6 +162,7 @@ int main(void)
     InitialiseMainPWM (); //initilises the main PWM signal
     InitialiseTailPWM(); // initilises  and sets the PWM signal for the tail motor
     IntMasterEnable(); // Enable interrupts to the processor.
+    InitReset();
 
 
     enum States
