@@ -7,8 +7,7 @@
 #include <controllerPWM.h>
 
 
-#define MAX_OUTPUT 70
-#define MIN_OUTPUT 2
+
 
 
 // Initialise Error signal

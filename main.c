@@ -3,10 +3,6 @@
  *  & Steph Post (spo88)
  *  group 55
  */
-
-#include <controllerPWM.h>
-#include <controllerPWM.h>
-#include <display.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -14,13 +10,17 @@
 #include "altitude.h"
 #include "yaw.h"
 #include "buttons.h"
+#include "controllerPWM.h"
 #include "uart.h"
+#include "display.h"
+
+
+//#define DEBUG
+
 
 //*****************************************************************************
 // Constants
 //*****************************************************************************
-#define DEBUG
-
 
 
 #define SYSTICK_RATE_HZ 100
@@ -30,21 +30,22 @@
 #define ADC_RANGE 1241
 
 #define FIND_REF_YAW_DUTY_CYCLE 10
-#define CALIBRATION_YAW_INCREMENT 5
 
 #define MAIN_LANDED_PWM 0
 #define TAIL_LANDED_PWM 0
 
 #define HOVER_ALT_PERCENTAGE 10
+#define MAX_ALTITUDE 100
 
 #define ALTITUDE_INCREMENT 10
+#define CALIBRATION_YAW_INCREMENT 5
 #define YAW_INCREMENT 15
-
-#define MAX_ALTITUDE 100
 
 #define DEGREES_IN_REV 360
 
 #define DELTA_T 10
+
+
 
 #define RESET_PERIPH SYSCTL_PERIPH_GPIOA
 #define RESET_PORT_BASE GPIO_PORTA_BASE
@@ -279,14 +280,14 @@ int main(void)
             {
                 UP_BUTTON_FLAG = false;
 
-            if (targetAltitudePercentage >= MAX_ALTITUDE - 10)
-            {
-                targetAltitudePercentage = MAX_ALTITUDE;
-            }
-            else
-            {
-                targetAltitudePercentage += ALTITUDE_INCREMENT;
-            }
+                if (targetAltitudePercentage >= MAX_ALTITUDE - 10)
+                {
+                    targetAltitudePercentage = MAX_ALTITUDE;
+                }
+                else
+                {
+                    targetAltitudePercentage += ALTITUDE_INCREMENT;
+                }
 
             }
 
@@ -305,8 +306,6 @@ int main(void)
                 }
             }
 
-
-
             if (LEFT_BUTTON_FLAG)
             {
                 LEFT_BUTTON_FLAG = false;
@@ -318,8 +317,6 @@ int main(void)
                     targetYaw  += DEGREES_IN_REV;
                 }
             }
-
-
 
             if (RIGHT_BUTTON_FLAG)
             {
@@ -343,7 +340,6 @@ int main(void)
             }
 
             mainDuty = MainRotorControlUpdate(targetAltitudePercentage, currentAltitudePercentage, DELTA_T);
-
             tailDuty = TailRotorControlUpdate (targetYaw, currentYaw,  DELTA_T);
 
 
@@ -355,13 +351,6 @@ int main(void)
 
             stateNum = 3;
 
-            mainDuty = MainRotorControlUpdate(targetAltitudePercentage, currentAltitudePercentage, DELTA_T);
-
-            tailDuty = TailRotorControlUpdate (targetYaw, currentYaw,  DELTA_T);
-
-
-            SetMainPWM(mainDuty);
-            SetTailPWM(tailDuty);
 
             if (targetYaw < 0)
             {
@@ -389,6 +378,11 @@ int main(void)
             }
 
 
+            mainDuty = MainRotorControlUpdate(targetAltitudePercentage, currentAltitudePercentage, DELTA_T);
+            tailDuty = TailRotorControlUpdate (targetYaw, currentYaw,  DELTA_T);
+
+            SetMainPWM(mainDuty);
+            SetTailPWM(tailDuty);
 
             break;
         }
@@ -416,14 +410,6 @@ int main(void)
         // Gets the decimal point for the yaw in degrees
         yawRemainder = GetYawRemainder();
 
-
-        //*****************************************************************************
-        //PID Control
-        //*****************************************************************************
-
-       // mainDuty = MainRotorControlUpdate(targetAltitudePercentage, currentAltitudePercentage, DELTA_T);
-
-        //tailDuty = TailRotorControlUpdate (targetYaw, currentYaw,  DELTA_T);
 
         //*****************************************************************************
         //display
@@ -482,8 +468,6 @@ int main(void)
 
            UARTSend (statusStr);
         }
-
-
     }
 }
 

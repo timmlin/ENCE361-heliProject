@@ -10,6 +10,8 @@
 
 #include <stdint.h>
 #include "OrbitOLED/OrbitOLEDInterface.h"
+#include "utils/ustdlib.h"
+
 
 
 #define SCREEN_LINE_NUM 4

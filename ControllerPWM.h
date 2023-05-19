@@ -27,6 +27,9 @@
 #define PWM_DIVIDER        4
 #define DEGREES_IN_REV     360
 
+#define MAX_OUTPUT 98
+#define MIN_OUTPUT 2
+
 /**********************************************************
  * PWM Constants
  **********************************************************/

@@ -161,15 +161,15 @@ int32_t YawToDegrees()
         currentYaw += TEETH_NUM * STATE_NUM;
     }
 
-    int32_t yawInDegrees = ((currentYaw * DEGREES_IN_REV * 10) / (TEETH_NUM * STATE_NUM));
+    int32_t yawInDegrees = ((currentYaw * DEGREES_IN_REV * SCALE_FACTOR) / (TEETH_NUM * STATE_NUM));
 
-    return (yawInDegrees/10)  % DEGREES_IN_REV; // returns the whole part of the yaw value in degrees
+    return (yawInDegrees/SCALE_FACTOR)  % DEGREES_IN_REV; // returns the whole part of the yaw value in degrees
 }
 
 uint32_t GetYawRemainder()
 {
 
-    uint32_t YawRemainder = ((currentYaw * DEGREES_IN_REV * 10 ) / (TEETH_NUM * STATE_NUM));
+    uint32_t YawRemainder = ((currentYaw * DEGREES_IN_REV * SCALE_FACTOR ) / (TEETH_NUM * STATE_NUM));
     return YawRemainder % 10; // will return the decimal point of the angle in degrees
 }
 

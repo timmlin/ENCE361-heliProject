@@ -41,6 +41,7 @@ extern volatile bool isYawCalibrated;
 #define TEETH_NUM 112 // number of teeth on the disc
 #define STATE_NUM 4 // number of states per tooth
 #define DEGREES_IN_REV 360 // number of degrees in one revolution, scaled by a factor of 10
+#define SCALE_FACTOR 10
 
 
 static int8_t current_state = 0;
